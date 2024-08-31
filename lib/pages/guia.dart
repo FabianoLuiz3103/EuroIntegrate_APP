@@ -1,10 +1,15 @@
+import 'dart:convert';
 
 import 'package:eurointegrate_app/components/button_navigation.dart';
 import 'package:eurointegrate_app/components/consts.dart';
+import 'package:eurointegrate_app/model/api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class GuiaScreen extends StatefulWidget {
-  const GuiaScreen({super.key});
+   final String token;
+  final int id;
+  const GuiaScreen({super.key, required this.token, required this.id});
 
   @override
   State<GuiaScreen> createState() => _VideoScreenState();
@@ -13,12 +18,185 @@ class GuiaScreen extends StatefulWidget {
 class _VideoScreenState extends State<GuiaScreen> {
   double _globalProgress = 0.0;
 
+  List<DropdownMenuItem<String>> items = [
+   const DropdownMenuItem(
+      value: "gerais",
+      child: Text("GERAIS"),
+    ),
+    const DropdownMenuItem(value: "departamento", child: Text("DEPARTAMENTO"))
+  ];
+  List<String> normasGerais = ["Geral 1", "Geral 2", "Geral 3", "Geral 4"];
+  List<String> normasDpt = ["DPT 1", "DPT 2", "DPT 3", "DPT 4"];
+  List<String> normasAtuais = [];
+  String atual = "";
+
+
+
+Future<List<List<Pergunta>>>? _fetchPerguntas;
+  double pgr = 0.0;
+  double pgrEnv = 0.0;
+  int pts = 0;
+  List<dynamic> respostas = [];
+  int qtdRespondidas = 0;
+  int qtdCertas = 0;
+  List<Resposta> respondidas = [];
+  int idUser = 0;
+  late final ApiService apiService;
+
+
+  Future<List<List<Pergunta>>> _fetchData() async {
+    var url = Uri.parse('$urlAPI/colaboradores/normas-departamento/${widget.id}');
+    String token = widget.token;
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+      );
+
+      if (response.statusCode == 200) {
+         List<int> bytes = response.bodyBytes;
+    String decodedBody = utf8.decode(bytes);
+    List<dynamic> data = jsonDecode(decodedBody);
+        print(data);
+        List<List<Pergunta>> perguntas = _inicializarPerguntas(data);
+        return perguntas;
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      print("Erro na requisição: $e");
+      return [];
+    }
+  }
+
+  Future<List<dynamic>> _fetchDataSeq() async {
+    var url = Uri.parse('$urlAPI/colaboradores/videos-seq/${widget.id}');
+    String token = widget.token;
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        Map data = jsonDecode(response.body);
+        
+        idUser = data['idColaborador'];
+        pgr = data['porcProgresso']/100;
+        pts = data['pontuacao'];
+        qtdRespondidas = data['qtdRespondidas'];
+        qtdCertas = data['qtdCertas'];
+        respostas = data['respostas'];
+       // print(respostas);
+       return respostas;
+       
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      print("Erro na requisição: $e");
+      return [];
+    }
+  }
+
+  List<List<Pergunta>> _inicializarPerguntas(List<dynamic>? data) {
+    if (data != null && data.isNotEmpty) {
+      List<List<Pergunta>> perguntasList = [];
+      for (var item in data) {
+        if (item is Map<String, dynamic> && item.containsKey("perguntas")) {
+          var perguntasData = item["perguntas"];
+          if (perguntasData is List) {
+            var perguntasSublista = perguntasData
+                .map((perguntaJson) => Pergunta.fromJson(perguntaJson))
+                .toList();
+            perguntasList.add(perguntasSublista);
+          } else {
+            print('O valor de "perguntas" não é uma lista.');
+          }
+        } else {
+          print('Item não contém a chave "perguntas" ou não é um mapa.');
+        }
+      }
+      return perguntasList;
+    } else {
+      print('Dados não disponíveis ou estão vazios.');
+      return [];
+    }
+  }
+
+
+  @override
+  void initState() {
+    super.initState();
+    normasAtuais = normasGerais;
+    atual = "GERAIS";
+    _fetchData();
+  }
+
+   @override
+  void dispose() {
+    Future.microtask(() async {
+      await apiService.enviarDados(pgrEnv, pts, qtdRespondidas, qtdCertas);
+      await apiService.enviarRespostas(respondidas);
+    });
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Guia e normas"),
+        title: Text(atual),
         backgroundColor: azulEuro,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 12.0, 0),
+            child: DropdownButton(
+              hint: const Padding(
+                padding: EdgeInsets.only(top: 10.0),
+                child: Text(
+                  "Tipo de norma",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+              items: items,
+              onChanged: (String? value) {
+                setState(() {
+                   if(value == "gerais"){
+                  normasAtuais = normasGerais;
+                  atual = "GERAIS";
+                } else if(value == "departamento"){
+                  normasAtuais = normasDpt;
+                  atual = "DEPARTAMENTO";
+                }
+                });
+               
+              },
+              style:const TextStyle(color: Colors.white,),
+              dropdownColor: azulEuro,
+              underline: const SizedBox(),
+              icon: const Padding(
+                padding:  EdgeInsets.only(
+                    top: 8.0), // Ajuste a posição vertical da seta
+                child: Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          )
+        ],
       ),
       body: Center(
         child: Container(
@@ -29,14 +207,15 @@ class _VideoScreenState extends State<GuiaScreen> {
               Expanded(
                 child: PageView(
                   children: [
-                    _buildGuiaPage("Guia 2", perguntasVideo2, 2),
-                    _buildGuiaPage("Guia 3", perguntasVideo3, 3),
-                    _buildGuiaPage("Guia 4", perguntasVideo4, 4),
-                    _buildGuiaPage("Guia 1", perguntasVideo1, 1),
+                   //for(int i = 0; i < normasGerais.length; i++)
+                      //_buildGuiaPage(normasAtuais[i], List<Pergunta> List, i)
+                   
                   ],
                 ),
               ),
-              SizedBox(height: 8,)
+              SizedBox(
+                height: 8,
+              )
             ],
           ),
         ),
@@ -64,20 +243,22 @@ class _VideoScreenState extends State<GuiaScreen> {
                   minHeight: 20,
                 ),
               ),
-              SizedBox(width: 8,),
-              Text(
-              "${(progress * 10).toStringAsFixed(1)}%",
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: azulEuro,
+              SizedBox(
+                width: 8,
               ),
-              textAlign: TextAlign.center,
-            ),
+              Text(
+                "${(progress * 10).toStringAsFixed(1)}%",
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: azulEuro,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ],
           ),
         ),
-       // SizedBox(height: 12),
+        // SizedBox(height: 12),
         Expanded(
           child: Container(
             decoration: BoxDecoration(
@@ -90,8 +271,9 @@ class _VideoScreenState extends State<GuiaScreen> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
-                      "NORMA 1",
-                      style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                      guia,
+                      style:
+                          TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Padding(
@@ -143,7 +325,8 @@ class _VideoScreenState extends State<GuiaScreen> {
                           return ListTile(
                             title: TextButton(
                               style: ButtonStyle(
-                                backgroundColor: WidgetStateProperty.all(buttonColor),
+                                backgroundColor:
+                                    WidgetStateProperty.all(buttonColor),
                                 shape: WidgetStateProperty.all(
                                   RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(18.0),
@@ -152,7 +335,8 @@ class _VideoScreenState extends State<GuiaScreen> {
                               ),
                               child: Text(
                                 pergunta.ops[index].texto,
-                                style: TextStyle(fontSize: 15, color: Colors.white),
+                                style: TextStyle(
+                                    fontSize: 15, color: Colors.white),
                               ),
                               onPressed: pergunta.isAnswered
                                   ? null
@@ -161,7 +345,8 @@ class _VideoScreenState extends State<GuiaScreen> {
                                         _globalProgress += 20;
                                         pergunta.selectedOptionIndex = index;
                                         pergunta.isAnswered = true;
-                                        pergunta.isCorrect = pergunta.checkAnswer(index);
+                                        pergunta.isCorrect =
+                                            pergunta.checkAnswer(index);
                                       });
                                     },
                             ),
@@ -180,115 +365,64 @@ class _VideoScreenState extends State<GuiaScreen> {
   }
 }
 
+class Opcao {
+  String texto;
+  String opcao;
+
+  Opcao({required this.texto, required this.opcao});
+
+  factory Opcao.fromJson(Map<String, dynamic> json) {
+    return Opcao(
+      texto: json['texto'],
+      opcao: json['opcao'],
+    );
+  }
+}
 
 class Pergunta {
-  String enunciado = '';
-  List<Opcao> ops = [];
+  int id;
+  String enunciado;
+  String respostaCorreta;
+  List<Opcao> ops;
   int? selectedOptionIndex;
   bool isAnswered = false;
   bool? isCorrect;
 
-  Pergunta({required String enun, required List<Opcao> op}) {
-    this.enunciado = enun;
-    this.ops = op;
+  Pergunta({
+    required this.id,
+    required this.enunciado,
+    required this.respostaCorreta,
+    required this.ops,
+  });
+
+  factory Pergunta.fromJson(Map<String, dynamic> json) {
+    return Pergunta(
+      id: json['id'],
+      enunciado: json['enunciado'],
+      respostaCorreta: json['respostaCorreta'],
+      ops: (json['opcoes'] as List<dynamic>)
+          .map((op) => Opcao.fromJson(op))
+          .toList(),
+    );
   }
 
   bool checkAnswer(int index) {
-    return ops[index].opcao == "A"; // Supondo que "A" é a resposta correta.
+    return ops[index].opcao == respostaCorreta;
   }
 }
 
-class Opcao {
-  String texto = ' ';
-  String opcao = ' ';
-  Opcao({required String tex, required String op}) {
-    this.texto = tex;
-    this.opcao = op;
+class Resposta{
+  int? idColaborador;
+  int? idPergunta;
+  String? resposta;
+
+Resposta({required this.idColaborador, required this.idPergunta, required this.resposta});
+
+ Map<String, dynamic> toJson() {
+    return {
+      'colaboradorId': idColaborador,
+      'perguntaId': idPergunta,
+      'resposta': resposta,
+    };
   }
 }
-
-
-// Listas de perguntas para cada vídeo
-List<Pergunta> perguntasVideo1 = [
-  Pergunta(
-      enun:
-          "QUESTÃO 1: Qual das alternativas abaixo está correta em relação ao tema abordado?",
-      op: [
-        Opcao(tex: "OPCAO A - Q1", op: "A"),
-        Opcao(tex: "OPCAO B - Q1", op: "B"),
-        Opcao(tex: "OPCAO C - Q1", op: "C"),
-        Opcao(tex: "OPCAO D - Q1", op: "D")
-      ]),
-  Pergunta(
-      enun:
-          "QUESTÃO 2: Qual das alternativas abaixo está correta em relação ao tema abordado?",
-      op: [
-        Opcao(tex: "OPCAO A - Q2", op: "A"),
-        Opcao(tex: "OPCAO B - Q2", op: "B"),
-        Opcao(tex: "OPCAO C - Q2", op: "C"),
-        Opcao(tex: "OPCAO D - Q2", op: "D")
-      ]),
-];
-
-List<Pergunta> perguntasVideo2 = [
-  Pergunta(
-      enun:
-          "QUESTÃO 1: Qual das alternativas abaixo está correta em relação ao tema abordado?",
-      op: [
-        Opcao(tex: "OPCAO A - Q1", op: "A"),
-        Opcao(tex: "OPCAO B - Q1", op: "B"),
-        Opcao(tex: "OPCAO C - Q1", op: "C"),
-        Opcao(tex: "OPCAO D - Q1", op: "D")
-      ]),
-  Pergunta(
-      enun:
-          "QUESTÃO 2: Qual das alternativas abaixo está correta em relação ao tema abordado?",
-      op: [
-        Opcao(tex: "OPCAO A - Q2", op: "A"),
-        Opcao(tex: "OPCAO B - Q2", op: "B"),
-        Opcao(tex: "OPCAO C - Q2", op: "C"),
-        Opcao(tex: "OPCAO D - Q2", op: "D")
-      ]),
-];
-
-List<Pergunta> perguntasVideo3 = [
-  Pergunta(
-      enun:
-          "QUESTÃO 1: Qual das alternativas abaixo está correta em relação ao tema abordado?",
-      op: [
-        Opcao(tex: "OPCAO A - Q1", op: "A"),
-        Opcao(tex: "OPCAO B - Q1", op: "B"),
-        Opcao(tex: "OPCAO C - Q1", op: "C"),
-        Opcao(tex: "OPCAO D - Q1", op: "D")
-      ]),
-  Pergunta(
-      enun:
-          "QUESTÃO 2: Qual das alternativas abaixo está correta em relação ao tema abordado?",
-      op: [
-        Opcao(tex: "OPCAO A - Q2", op: "A"),
-        Opcao(tex: "OPCAO B - Q2", op: "B"),
-        Opcao(tex: "OPCAO C - Q2", op: "C"),
-        Opcao(tex: "OPCAO D - Q2", op: "D")
-      ]),
-];
-
-List<Pergunta> perguntasVideo4 = [
-  Pergunta(
-      enun:
-          "QUESTÃO 1: Qual das alternativas abaixo está correta em relação ao tema abordado?",
-      op: [
-        Opcao(tex: "OPCAO A - Q1", op: "A"),
-        Opcao(tex: "OPCAO B - Q1", op: "B"),
-        Opcao(tex: "OPCAO C - Q1", op: "C"),
-        Opcao(tex: "OPCAO D - Q1", op: "D")
-      ]),
-  Pergunta(
-      enun:
-          "QUESTÃO 2: Qual das alternativas abaixo está correta em relação ao tema abordado?",
-      op: [
-        Opcao(tex: "OPCAO A - Q2", op: "A"),
-        Opcao(tex: "OPCAO B - Q2", op: "B"),
-        Opcao(tex: "OPCAO C - Q2", op: "C"),
-        Opcao(tex: "OPCAO D - Q2", op: "D")
-      ]),
-];

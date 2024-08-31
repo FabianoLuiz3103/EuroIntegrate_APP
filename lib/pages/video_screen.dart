@@ -47,8 +47,9 @@ class _VideoScreenState extends State<VideoScreen>{
       );
 
       if (response.statusCode == 200) {
-        List<dynamic> data = jsonDecode(response.body);
-        //print(data);
+          List<int> bytes = response.bodyBytes;
+    String decodedBody = utf8.decode(bytes);
+    List<dynamic> data = jsonDecode(decodedBody);
         _initVideos(data);
         List<List<Pergunta>> perguntas = _inicializarPerguntas(data);
         return perguntas;
@@ -230,16 +231,6 @@ void initState() {
   }
 
 
-// // >>>>>>>>>>. DISPOSE
-// @override
-//   void dispose(){
-//     _progressTimer?.cancel();
-//     _videoPlayerController1.dispose();
-//     _videoPlayerController2.dispose();
-//     _videoPlayerController3.dispose();
-//     _videoTimers.forEach((_, timer) => timer?.cancel());
-//     super.dispose();
-//   }
 
   @override
   void dispose() {

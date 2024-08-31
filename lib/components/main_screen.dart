@@ -25,7 +25,7 @@ class _MainScreenState extends State<MainScreen> {
       Home(token: widget.token, id: widget.id,),
       VideoScreen(token: widget.token, id: widget.id,),
       Perfil(token: widget.token, id: widget.id,),
-      GuiaScreen(),
+      GuiaScreen(token: widget.token, id: widget.id,),
       ConquistasScreen(token: widget.token,),
     ];
 
