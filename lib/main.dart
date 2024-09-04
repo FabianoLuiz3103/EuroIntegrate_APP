@@ -6,6 +6,7 @@ import 'package:eurointegrate_app/pages/conquistas_screen.dart';
 import 'package:eurointegrate_app/pages/guia.dart';
 import 'package:eurointegrate_app/pages/login.dart';
 import 'package:eurointegrate_app/pages/video_screen.dart';
+import 'package:eurointegrate_app/upload/bulk_upload.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -25,7 +26,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: azulEuro),
         useMaterial3: false,
       ),
-      home: const HomeAdminScreen(),
+      home: const BulkUpload(),
     );
   }
 }
