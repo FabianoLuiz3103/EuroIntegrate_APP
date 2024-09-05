@@ -78,6 +78,14 @@ class _LoginState extends State<Login> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    _email.dispose();
+    _senha.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _carregando

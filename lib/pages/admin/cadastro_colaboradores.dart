@@ -1,18 +1,19 @@
 import 'dart:io';
+import 'package:eurointegrate_app/components/consts.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class BulkUpload extends StatefulWidget {
-  const BulkUpload({Key? key}) : super(key: key);
+class CadastroColaboradoresScreen extends StatefulWidget {
+  const CadastroColaboradoresScreen({Key? key}) : super(key: key);
 
   @override
-  State<BulkUpload> createState() => _BulkUploadState();
+  State<CadastroColaboradoresScreen> createState() => _CadastroColaboradoresScreenState();
 }
 
-class _BulkUploadState extends State<BulkUpload> {
+class _CadastroColaboradoresScreenState extends State<CadastroColaboradoresScreen> {
   List<Colaborador> _colaboradores = [];
   String? filePath;
 
@@ -31,7 +32,7 @@ class _BulkUploadState extends State<BulkUpload> {
                   width: MediaQuery.of(context).size.height * 0.95,
                   height: MediaQuery.of(context).size.height * 0.24,
                   decoration: const BoxDecoration(
-                      color: Colors.yellow,
+                      color: amareloEuro,
                       borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(25),
                           topRight: Radius.circular(25),
@@ -65,7 +66,7 @@ class _BulkUploadState extends State<BulkUpload> {
                 ),
                 onPressed: _pickFile,
                 style: ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(Colors.yellow),
+                  backgroundColor: WidgetStatePropertyAll(amareloEuro),
                   shape: WidgetStateProperty.all(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30), 
