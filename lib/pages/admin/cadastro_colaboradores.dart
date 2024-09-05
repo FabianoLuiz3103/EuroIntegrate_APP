@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:eurointegrate_app/components/consts.dart';
+import 'package:eurointegrate_app/pages/admin/components/rounded_button.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -56,25 +57,7 @@ class _CadastroColaboradoresScreenState extends State<CadastroColaboradoresScree
               child: Text("Faça aqui o upload do .XLSX/.XLS com os novos colaboradores", textAlign: TextAlign.center,),
             ),
             SizedBox(height: 20,),
-            SizedBox(
-              width: 200,
-              height: 50,
-              child: ElevatedButton(
-                child: const Text(
-                  "Upload File",
-                  style: TextStyle(color: Colors.black),
-                ),
-                onPressed: _pickFile,
-                style: ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(amareloEuro),
-                  shape: WidgetStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30), 
-                    ),
-                  ),
-                ),
-              ),
-            ),
+           btn_amarelo(label: 'Carregar arquivo', funcao: _pickFile),
             SizedBox(height: 20,),
             if(_colaboradores.isNotEmpty)
               Text("COLABORADORES ADICIONADOS:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),),
