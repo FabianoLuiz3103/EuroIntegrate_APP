@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:eurointegrate_app/components/button_navigation.dart';
+import 'package:eurointegrate_app/components/botton_navigation.dart';
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/model/api_service.dart';
 import 'package:flutter/material.dart';

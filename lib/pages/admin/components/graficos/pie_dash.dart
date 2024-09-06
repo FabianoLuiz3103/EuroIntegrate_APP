@@ -19,7 +19,7 @@ class _PieDashState extends State<PieDash> {
   final Map<String, List<PieChartSectionData>> pieDataByYear = {
     '2024': [
       PieChartSectionData(
-        color: Colors.orange,
+        color: Colors.pink,
         value: 20,
         title: '20%',
         radius: 90,
@@ -33,21 +33,21 @@ class _PieDashState extends State<PieDash> {
         titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
       ),
       PieChartSectionData(
-        color: Colors.grey,
+        color: Colors.lightGreen,
         value: 33,
         title: '33%',
         radius: 90,
         titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
       ),
       PieChartSectionData(
-        color: Colors.black,
+        color: Colors.lightBlue,
         value: 33,
         title: '33%',
         radius: 90,
         titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
       ),
       PieChartSectionData(
-        color: Colors.purple,
+        color: Colors.deepPurple,
         value: 33,
         title: '33%',
         radius: 90,
@@ -56,7 +56,7 @@ class _PieDashState extends State<PieDash> {
     ],
     '2022': [
       PieChartSectionData(
-        color: Colors.red,
+        color: Colors.redAccent,
         value: 25,
         title: '25%',
         radius: 90,
@@ -135,7 +135,7 @@ class _PieDashState extends State<PieDash> {
     switch (index) {
       case 0:
         return ItemLegenda(
-          cor: Colors.orange,
+          cor: Colors.pink,
           legenda: 'Maior que 18; Menor ou igual a 25'.toUpperCase(),
           pie: true,
         );
@@ -147,19 +147,19 @@ class _PieDashState extends State<PieDash> {
         );
       case 2:
         return ItemLegenda(
-          cor: Colors.grey,
+          cor: Colors.lightGreen,
           legenda: 'Maior que 30; Menor ou igual a 40'.toUpperCase(),
           pie: true,
         );
       case 3:
         return ItemLegenda(
-          cor: Colors.black,
+          cor: Colors.lightBlue,
           legenda: 'Maior que 40; Menor ou igual a 50'.toUpperCase(),
           pie: true,
         );
       case 4:
         return ItemLegenda(
-          cor: Colors.purple,
+          cor: Colors.deepPurple,
           legenda: 'Maior que 50'.toUpperCase(),
           pie: true,
         );

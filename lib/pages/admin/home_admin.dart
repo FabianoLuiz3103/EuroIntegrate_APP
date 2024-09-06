@@ -7,6 +7,7 @@ import 'package:eurointegrate_app/pages/admin/components/graficos/barras_home.da
 import 'package:eurointegrate_app/pages/admin/components/graficos/item_legenda.dart';
 import 'package:eurointegrate_app/pages/admin/components/graficos/pizza_home.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class HomeAdminScreen extends StatelessWidget {
   const HomeAdminScreen({super.key});
@@ -23,10 +24,12 @@ class HomeAdminScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const BannerAdmin(titulo: Text(
-                    "Olá, Marcos!",
+                    "OLÁ, MARCOS",
                     style: TextStyle(
                         fontSize: 25, fontWeight: FontWeight.w600),
-                  ),),
+                  ),
+                  icon: FontAwesomeIcons.house,
+                  ),
               const SizedBox(height: 10),
               const CardGraficos(title: "ONBOARDINGS CRIADOS", subtitle: "TOTAL DE PROCESSOS: XXX",),
               const SizedBox(height: 15),

@@ -3,6 +3,7 @@ import 'package:eurointegrate_app/components/progress.dart';
 import 'package:eurointegrate_app/pages/admin/components/banner.dart';
 import 'package:eurointegrate_app/pages/admin/dashs_integracao.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 class ListagemIntegracao extends StatefulWidget {
@@ -29,9 +30,10 @@ class _ListagemIntegracaoState extends State<ListagemIntegracao> {
         children: [
           const BannerAdmin(
             titulo: Text(
-              "Listagem",
+              "LISTAGEM",
               style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600),
             ),
+            icon: (FontAwesomeIcons.listCheck),
           ),
        
           DropdownButton<Status?>(

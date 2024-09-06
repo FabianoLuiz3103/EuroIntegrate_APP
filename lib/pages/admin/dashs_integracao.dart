@@ -8,6 +8,7 @@ import 'package:eurointegrate_app/pages/admin/components/graficos/pie_dash.dart'
 import 'package:eurointegrate_app/pages/admin/components/graficos/pie_dash_dois.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class DashsIntegracaoScreen extends StatefulWidget {
   const DashsIntegracaoScreen({super.key});
@@ -217,7 +218,7 @@ bool get areAllMonthsEmpty {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(0.0),
         child: SingleChildScrollView(
           scrollDirection: Axis.vertical,
           child: Column(
@@ -226,6 +227,7 @@ bool get areAllMonthsEmpty {
                 titulo: Text("DASHBOARDS",  style: TextStyle(
                         fontSize: 25, fontWeight: FontWeight.w600),),
                 isIconButton: false,
+                icon: (FontAwesomeIcons.chartPie),
               ),
               const SizedBox(height: 30),
               const CardGraficos(

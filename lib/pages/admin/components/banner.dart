@@ -5,7 +5,8 @@ import 'package:intl/intl.dart';
 class BannerAdmin extends StatelessWidget {
   final Text titulo;
   final bool isIconButton;
-  const BannerAdmin({Key? key, required this.titulo, this.isIconButton = false})
+  final IconData icon;
+  const BannerAdmin({Key? key, required this.titulo, this.isIconButton = false, required this.icon})
       : super(key: key);
 
 
@@ -52,8 +53,16 @@ class BannerAdmin extends StatelessWidget {
                 ),
               ),
                Expanded(
-                child: Center(
-                  child: titulo,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Icon(icon, size: 60,),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 35),
+                        child: titulo,
+                      ),
+                    
+                  ],
                 ),
               ),
             ],

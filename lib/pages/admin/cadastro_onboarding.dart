@@ -1,9 +1,11 @@
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/components/progress.dart';
+import 'package:eurointegrate_app/pages/admin/components/banner.dart';
 import 'package:eurointegrate_app/pages/admin/components/rounded_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 class CadastroOnboardingScreen extends StatefulWidget {
@@ -44,249 +46,232 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
-                      child: Container(
-                        width: MediaQuery.of(context).size.height * 0.95,
-                        height: MediaQuery.of(context).size.height * 0.24,
-                        decoration: const BoxDecoration(
-                            color: amareloEuro,
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(25),
-                                topRight: Radius.circular(25),
-                                bottomLeft: Radius.circular(25))),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Cadastro de Onboarding",
-                              style: TextStyle(
-                                  fontSize: 15, fontWeight: FontWeight.w600),
-                            )
-                          ],
-                        ),
-                      ),
+      body: SingleChildScrollView(
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    const BannerAdmin(titulo:Text(
+                    "ONBOARDING",
+                    style: TextStyle(
+                        fontSize: 25, fontWeight: FontWeight.w600,), ),
+                  icon: FontAwesomeIcons.squarePlus,),
+                    const SizedBox(
+                      height: 40,
                     ),
-                  ),
-                  const SizedBox(
-                    height: 40,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
-                    child: Row(
-                      children: [
-                        const Expanded(
-                            child: Text(
-                          "DEPARTAMENTO ",
-                          style: TextStyle(fontSize: 15, color: Color(0xFF757575)),
-                        )),
-                        const SizedBox(
-                          width: 45,
-                        ),
-                        FutureBuilder<List<Departamento>>(
-                          future: _futureDepts,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
+                      child: Row(
+                        children: [
+                          const Expanded(
+                              child: Text(
+                            "DEPARTAMENTO ",
+                            style: TextStyle(fontSize: 15, color: Color(0xFF757575)),
+                          )),
+                          const SizedBox(
+                            width: 45,
+                          ),
+                          FutureBuilder<List<Departamento>>(
+                            future: _futureDepts,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return SizedBox(
+                                  width: 150,
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: progressSkin(20),
+                                  ),
+                                );
+                              } else if (snapshot.hasError) {
+                                return const Text(
+                                    'Erro ao carregar departamentos');
+                              } else if (!snapshot.hasData ||
+                                  snapshot.data!.isEmpty) {
+                                return const Text(
+                                    'Nenhum departamento encontrado');
+                              }
                               return SizedBox(
-                                width: 150,
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: progressSkin(20),
-                                ),
-                              );
-                            } else if (snapshot.hasError) {
-                              return const Text(
-                                  'Erro ao carregar departamentos');
-                            } else if (!snapshot.hasData ||
-                                snapshot.data!.isEmpty) {
-                              return const Text(
-                                  'Nenhum departamento encontrado');
-                            }
-                            return SizedBox(
-                              width:
-                                  150, // Defina uma largura fixa ou ajustável
-                              child: DropdownButtonFormField<String>(
-                                hint: Text(
-                                  "SELECIONE",
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                value: selected,
-                                items: snapshot.data!.map((departamento) {
-                                  return DropdownMenuItem(
-                                    value: departamento.id.toString(),
-                                    child: ConstrainedBox(
-                                      constraints:
-                                          BoxConstraints(maxWidth: 120),
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.vertical,
-                                        child: Text(
-                                          departamento.nome.toUpperCase(),
-                                          style: TextStyle(fontSize: 15),
-                                          textAlign: TextAlign.justify,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                                onChanged: (String? selectedDepartamento) {
-                                  setState(() {
-                                    selected = selectedDepartamento;
-                                  });
-                                },
-                                selectedItemBuilder: (BuildContext context) {
-                                  return snapshot.data!
-                                      .map<Widget>((departamento) {
-                                    return Container(
-                                      width:
-                                          120, // Define a largura do item selecionado
-                                      child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          departamento.nome.toUpperCase(),
-                                          style: TextStyle(fontSize: 15),
-                                          overflow: TextOverflow
-                                              .ellipsis, // Aplica as elipses ao texto
+                                width:
+                                    150, // Defina uma largura fixa ou ajustável
+                                child: DropdownButtonFormField<String>(
+                                  hint: Text(
+                                    "SELECIONE",
+                                    style: TextStyle(fontSize: 15),
+                                  ),
+                                  value: selected,
+                                  items: snapshot.data!.map((departamento) {
+                                    return DropdownMenuItem(
+                                      value: departamento.id.toString(),
+                                      child: ConstrainedBox(
+                                        constraints:
+                                            BoxConstraints(maxWidth: 120),
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.vertical,
+                                          child: Text(
+                                            departamento.nome.toUpperCase(),
+                                            style: TextStyle(fontSize: 15),
+                                            textAlign: TextAlign.justify,
+                                          ),
                                         ),
                                       ),
                                     );
-                                  }).toList();
-                                },
-                                validator: (value) => value == null
-                                    ? 'Departamento é obrigatório'
-                                    : null,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
-                    child: Row(
-                      children: [
-                        campoOnboarding(
-                            _dataInicio,
-                            () => _selectDate(
-                                  _dataInicio,
-                                  firstDate: DateTime.now(),
-                                  initialDate: _dataInicio.text.isNotEmpty
-                                      ? _toEuaDate(_dataInicio.text)
-                                      : DateTime.now(),
+                                  }).toList(),
+                                  onChanged: (String? selectedDepartamento) {
+                                    setState(() {
+                                      selected = selectedDepartamento;
+                                    });
+                                  },
+                                  selectedItemBuilder: (BuildContext context) {
+                                    return snapshot.data!
+                                        .map<Widget>((departamento) {
+                                      return Container(
+                                        width:
+                                            120, // Define a largura do item selecionado
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            departamento.nome.toUpperCase(),
+                                            style: TextStyle(fontSize: 15),
+                                            overflow: TextOverflow
+                                                .ellipsis, // Aplica as elipses ao texto
+                                          ),
+                                        ),
+                                      );
+                                    }).toList();
+                                  },
+                                  validator: (value) => value == null
+                                      ? 'Departamento é obrigatório'
+                                      : null,
                                 ),
-                            'Data Início',
-                            true,
-                            Icons.calendar_month_outlined,
-                            'Data Início é obrigatória'),
-                        SizedBox(
-                          width: 20,
-                        ),
-                        campoOnboarding(
-                            _horaInicio,
-                            () => _selectTime(context, _horaInicio),
-                            'Hora Início',
-                            true,
-                            Icons.timer_outlined,
-                            'Hora Início é obrigatória'),
-                      ],
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
-                    child: Row(
-                      children: [
-                        campoOnboarding(_dataFim, () {
-                          if (_dataInicio.text.isNotEmpty) {
-                            DateTime dataFimInicial =
-                                _toEuaDate(_dataInicio.text)
-                                    .add(const Duration(days: 2));
-                            return _selectDate(
-                              _dataFim,
-                              initialDate: _dataFim.text.isNotEmpty
-                                  ? _toEuaDate(_dataFim.text)
-                                  : dataFimInicial,
-                              firstDate: dataFimInicial,
-                            );
-                          } else {
-                            return _selectDate(
-                              _dataFim,
-                              initialDate: _dataFim.text.isNotEmpty
-                                  ? _toEuaDate(_dataFim.text)
-                                  : DateTime.now(),
-                              firstDate: DateTime.now(),
-                            );
-                          }
-                        },
-                            'Data Fim',
-                            _dataInicio.text.isNotEmpty,
-                            Icons.calendar_month_outlined,
-                            'Data Fim é obrigatória'),
-                        const SizedBox(
-                          width: 30,
-                        ),
-                        campoOnboarding(
-                            _horaFim,
-                            () => _selectTime(context, _horaFim),
-                            'Hora Fim',
-                            true,
-                            Icons.timer_outlined,
-                            'Hora Fim é obrigatória'),
-                      ],
+                    const SizedBox(
+                      height: 30,
                     ),
-                  ),
-                  const SizedBox(
-                    height: 40,
-                  ),
-                  btn_amarelo(
-                    label: "Salvar",
-                    funcao: () async {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        setState(() {
-                          isLoading = true;
-                        });
-                        bool salvo = await _salvar();
-                        if (salvo) {
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
+                      child: Row(
+                        children: [
+                          campoOnboarding(
+                              _dataInicio,
+                              () => _selectDate(
+                                    _dataInicio,
+                                    firstDate: DateTime.now(),
+                                    initialDate: _dataInicio.text.isNotEmpty
+                                        ? _toEuaDate(_dataInicio.text)
+                                        : DateTime.now(),
+                                  ),
+                              'Data Início',
+                              true,
+                              Icons.calendar_month_outlined,
+                              'Data Início é obrigatória'),
+                          SizedBox(
+                            width: 20,
+                          ),
+                          campoOnboarding(
+                              _horaInicio,
+                              () => _selectTime(context, _horaInicio),
+                              'Hora Início',
+                              true,
+                              Icons.timer_outlined,
+                              'Hora Início é obrigatória'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
+                      child: Row(
+                        children: [
+                          campoOnboarding(_dataFim, () {
+                            if (_dataInicio.text.isNotEmpty) {
+                              DateTime dataFimInicial =
+                                  _toEuaDate(_dataInicio.text)
+                                      .add(const Duration(days: 2));
+                              return _selectDate(
+                                _dataFim,
+                                initialDate: _dataFim.text.isNotEmpty
+                                    ? _toEuaDate(_dataFim.text)
+                                    : dataFimInicial,
+                                firstDate: dataFimInicial,
+                              );
+                            } else {
+                              return _selectDate(
+                                _dataFim,
+                                initialDate: _dataFim.text.isNotEmpty
+                                    ? _toEuaDate(_dataFim.text)
+                                    : DateTime.now(),
+                                firstDate: DateTime.now(),
+                              );
+                            }
+                          },
+                              'Data Fim',
+                              _dataInicio.text.isNotEmpty,
+                              Icons.calendar_month_outlined,
+                              'Data Fim é obrigatória'),
+                          const SizedBox(
+                            width: 30,
+                          ),
+                          campoOnboarding(
+                              _horaFim,
+                              () => _selectTime(context, _horaFim),
+                              'Hora Fim',
+                              true,
+                              Icons.timer_outlined,
+                              'Hora Fim é obrigatória'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    btn_amarelo(
+                      label: "Salvar",
+                      funcao: () async {
+                        if (_formKey.currentState?.validate() ?? false) {
                           setState(() {
-                            _dataInicio.clear();
-                            _dataFim.clear();
-                            _horaInicio.clear();
-                            _horaFim.clear();
-                            selected = null;
+                            isLoading = true;
                           });
-                          await _showConfirmacaoCadastroDetails();
+                          bool salvo = await _salvar();
+                          if (salvo) {
+                            await _showConfirmacaoCadastroDetails();
+                            setState(() {
+                              _dataInicio.clear();
+                              _dataFim.clear();
+                              _horaInicio.clear();
+                              _horaFim.clear();
+                              selected = null;
+                            });
+                            
+                          }
+                          setState(() {
+                            isLoading = false;
+                          });
                         }
-                        setState(() {
-                          isLoading = false;
-                        });
-                      }
-                    },
-                  ),
-                ],
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          if (isLoading)
-            Container(
-              color: Colors.black54,
-              child: progressSkin(30),
-            ),
-        ],
+            if (isLoading)
+              Container(
+                color: Colors.black54,
+                child: progressSkin(30),
+              ),
+          ],
+        ),
       ),
     );
   }

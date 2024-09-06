@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:eurointegrate_app/components/consts.dart';
+import 'package:eurointegrate_app/pages/admin/components/banner.dart';
 import 'package:eurointegrate_app/pages/admin/components/rounded_button.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 class CadastroColaboradoresScreen extends StatefulWidget {
@@ -26,35 +28,15 @@ class _CadastroColaboradoresScreenState extends State<CadastroColaboradoresScree
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
-                child: Container(
-                  width: MediaQuery.of(context).size.height * 0.95,
-                  height: MediaQuery.of(context).size.height * 0.24,
-                  decoration: const BoxDecoration(
-                      color: amareloEuro,
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(25),
-                          topRight: Radius.circular(25),
-                          bottomLeft: Radius.circular(25))),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Cadastro de novos colaboradores",
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w600),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
+           const  BannerAdmin(titulo:Text(
+                    "COLABORADORES",
+                    style: TextStyle(
+                        fontSize: 25, fontWeight: FontWeight.w600,), ),
+                  icon: FontAwesomeIcons.userPlus,),
             SizedBox(height: 20,),
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
-              child: Text("Faça aqui o upload do .XLSX/.XLS com os novos colaboradores", textAlign: TextAlign.center,),
+              child: Text("Faça aqui o upload do .XLSX/.XLS para o cadastro dos novos colaboradores", textAlign: TextAlign.center,),
             ),
             SizedBox(height: 20,),
            btn_amarelo(label: 'Carregar arquivo', funcao: _pickFile),
