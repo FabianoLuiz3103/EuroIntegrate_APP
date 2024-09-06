@@ -4,7 +4,8 @@ import 'package:intl/intl.dart';
 
 class BannerAdmin extends StatelessWidget {
   final Text titulo;
-  const BannerAdmin({Key? key, required this.titulo})
+  final bool isIconButton;
+  const BannerAdmin({Key? key, required this.titulo, this.isIconButton = false})
       : super(key: key);
 
 
@@ -34,7 +35,12 @@ class BannerAdmin extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(formattedDate.toUpperCase()),
+                    isIconButton ? IconButton(
+                    icon: Icon(Icons.arrow_back),
+                    onPressed: () {
+                      Navigator.pop(context); 
+                    },
+                  ) : Text(formattedDate.toUpperCase()),
                     Row(
                       children: [
                         const Text("ATIVO"),

@@ -1,6 +1,7 @@
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/components/progress.dart';
 import 'package:eurointegrate_app/pages/admin/components/banner.dart';
+import 'package:eurointegrate_app/pages/admin/dashs_integracao.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -222,7 +223,13 @@ class IntegracaoDetails extends StatelessWidget {
       Padding(
         padding: const EdgeInsets.all(8.0),
         child: Center(
-          child: ElevatedButton(onPressed: (){}, style: const ButtonStyle(backgroundColor: WidgetStatePropertyAll(azulEuro)), 
+          child: ElevatedButton(onPressed: (){
+            // Navigator.push(context,
+            //  MaterialPageRoute(
+            //   builder: (context) => DashsIntegracaoScreen()
+            //  ),
+            //  );
+          }, style: const ButtonStyle(backgroundColor: WidgetStatePropertyAll(azulEuro)), 
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
