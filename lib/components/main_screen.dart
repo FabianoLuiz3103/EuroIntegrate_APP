@@ -4,7 +4,7 @@ import 'package:eurointegrate_app/pages/guia.dart';
 import 'package:eurointegrate_app/pages/home.dart';
 import 'package:eurointegrate_app/pages/perfil.dart';
 import 'package:eurointegrate_app/pages/video_screen.dart';
-import 'package:eurointegrate_app/components/button_navigation.dart';
+import 'package:eurointegrate_app/components/botton_navigation.dart';
 
 class MainScreen extends StatefulWidget {
   final String token;

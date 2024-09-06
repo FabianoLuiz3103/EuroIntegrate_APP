@@ -23,7 +23,7 @@ class _ConquistasScreenState extends State<ConquistasScreen> {
       ),
       body: FutureBuilder<List<Conquista>>(
         future:
-            loadConquistas(), // Certifique-se de que esta função está definida
+            loadConquistas(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

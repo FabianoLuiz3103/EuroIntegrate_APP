@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:eurointegrate_app/components/button_navigation.dart';
+import 'package:eurointegrate_app/components/botton_navigation.dart';
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/model/api_service.dart';
 import 'package:flutter/material.dart';
@@ -12,11 +12,11 @@ class GuiaScreen extends StatefulWidget {
   const GuiaScreen({super.key, required this.token, required this.id});
 
   @override
-  State<GuiaScreen> createState() => _VideoScreenState();
+  State<GuiaScreen> createState() => _GuiaScreenState();
 }
 
-class _VideoScreenState extends State<GuiaScreen> {
-  double _globalProgress = 0.0;
+class _GuiaScreenState extends State<GuiaScreen> {
+
 
   List<DropdownMenuItem<String>> items = [
    const DropdownMenuItem(
@@ -25,12 +25,13 @@ class _VideoScreenState extends State<GuiaScreen> {
     ),
     const DropdownMenuItem(value: "departamento", child: Text("DEPARTAMENTO"))
   ];
-  List<String> normasGerais = ["Geral 1", "Geral 2", "Geral 3", "Geral 4"];
-  List<String> normasDpt = ["DPT 1", "DPT 2", "DPT 3", "DPT 4"];
-  List<String> normasAtuais = [];
+  List<Map<String, dynamic>> normasGerais = [];
+   List<Map<String, dynamic>> normasDpt = [];
+  List<Map<String, dynamic>> normasAtuais = [];
+  List<List<Pergunta>> perguntasDepartamento = [];
+    List<List<Pergunta>> perguntasGerais = [];
+    List<List<Pergunta>> perguntasAtuais = [];
   String atual = "";
-
-
 
 Future<List<List<Pergunta>>>? _fetchPerguntas;
   double pgr = 0.0;
@@ -43,39 +44,95 @@ Future<List<List<Pergunta>>>? _fetchPerguntas;
   int idUser = 0;
   late final ApiService apiService;
 
+    //verificações
+  bool mudanca = false;
+  double pgrAnt = 0.0;
+  int ptsAnt = 0;
+  int qtdRespondidasAnt = 0;
+  int qtdCertasAnt = 0;
 
-  Future<List<List<Pergunta>>> _fetchData() async {
-    var url = Uri.parse('$urlAPI/colaboradores/normas-departamento/${widget.id}');
-    String token = widget.token;
 
-    try {
-      final response = await http.get(
-        url,
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true",
-        },
+
+Future<Map<String, List<List<Pergunta>>>> _fetchData() async {
+  var url1 = Uri.parse('$urlAPI/colaboradores/normas-departamento/${widget.id}');
+  var url2 = Uri.parse('$urlAPI/colaboradores/normas-gerais');
+  String token = widget.token;
+
+  try {
+    final response1Future = http.get(
+      url1,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+      },
+    );
+
+    final response2Future = http.get(
+      url2,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+      },
+    );
+
+    final responses = await Future.wait([response1Future, response2Future]);
+
+    // Processa a resposta da primeira requisição
+    final response1 = responses[0];
+    List<List<Pergunta>> perguntasDepartamento = [];
+    if (response1.statusCode == 200) {
+      List<dynamic> data1 = jsonDecode(utf8.decode(response1.bodyBytes));
+      perguntasDepartamento = _inicializarPerguntas(data1);
+
+      _initNormasDPT(
+        data1
+          .map((item) => item['normas'])
+          .whereType<Map<String, dynamic>>()
+          .cast<Map<String, dynamic>>()
+          .toList()
       );
-
-      if (response.statusCode == 200) {
-         List<int> bytes = response.bodyBytes;
-    String decodedBody = utf8.decode(bytes);
-    List<dynamic> data = jsonDecode(decodedBody);
-        print(data);
-        List<List<Pergunta>> perguntas = _inicializarPerguntas(data);
-        return perguntas;
-      } else {
-        throw Exception('Failed to load data');
-      }
-    } catch (e) {
-      print("Erro na requisição: $e");
-      return [];
+    } else {
+      throw Exception('Failed to load data from url1');
     }
+
+    // Processa a resposta da segunda requisição
+    final response2 = responses[1];
+    List<List<Pergunta>> perguntasGerais = [];
+    if (response2.statusCode == 200) {
+      List<dynamic> data2 = jsonDecode(utf8.decode(response2.bodyBytes));
+      perguntasGerais = _inicializarPerguntas(data2);
+
+      _initNormasGerais(
+        data2
+          .map((item) => item['normas'])
+          .whereType<Map<String, dynamic>>()
+          .cast<Map<String, dynamic>>()
+          .toList()
+      );
+    } else {
+      throw Exception('Failed to load data from url2');
+    }
+
+    // Retorna as perguntas de ambas as requisições com suas respectivas chaves
+    return {
+      "departamento": perguntasDepartamento,
+      "gerais": perguntasGerais,
+    };
+
+  } catch (e) {
+    print("Erro na requisição: $e");
+    return {
+      "departamento": [],
+      "gerais": [],
+    };
   }
+}
+
 
   Future<List<dynamic>> _fetchDataSeq() async {
-    var url = Uri.parse('$urlAPI/colaboradores/videos-seq/${widget.id}');
+    var url = Uri.parse('$urlAPI/colaboradores/dados-aux/${widget.id}');
     String token = widget.token;
 
     try {
@@ -97,7 +154,12 @@ Future<List<List<Pergunta>>>? _fetchPerguntas;
         qtdRespondidas = data['qtdRespondidas'];
         qtdCertas = data['qtdCertas'];
         respostas = data['respostas'];
-       // print(respostas);
+        
+        //variáveis para verificar se teve mudança
+        pgrAnt = pgr;
+        ptsAnt = pts;
+        qtdRespondidasAnt = qtdRespondidas;
+        qtdCertasAnt = qtdCertas;
        return respostas;
        
       } else {
@@ -134,21 +196,85 @@ Future<List<List<Pergunta>>>? _fetchPerguntas;
     }
   }
 
+void _initNormasDPT(List<Map<String, dynamic>> data){
+  normasDpt = data;
+}
 
-  @override
-  void initState() {
-    super.initState();
-    normasAtuais = normasGerais;
-    atual = "GERAIS";
-    _fetchData();
+void _initNormasGerais(List<Map<String, dynamic>> data){
+  normasGerais = data;
+}
+
+@override
+void initState() {
+  super.initState();
+  apiService = ApiService(token: widget.token, id: widget.id);
+  atual = "DEPARTAMENTO";
+  _fetchPerguntas = Future.wait([
+    _fetchData(),  
+    _fetchDataSeq(),
+  ]).then((results) {
+    Map<String, List<List<Pergunta>>> perguntasMap = results[0] as Map<String, List<List<Pergunta>>>;
+    perguntasDepartamento = perguntasMap["departamento"]!;
+    perguntasGerais = perguntasMap["gerais"]!;
+    perguntasAtuais = perguntasDepartamento;
+    normasAtuais = normasDpt;
+    List<dynamic> respostas = results[1] as List<dynamic>;
+    List<List<Pergunta>> todasPerguntas = [...perguntasDepartamento, ...perguntasGerais];
+    _marcarPerguntasComoRespondidas(todasPerguntas, respostas);
+
+    return todasPerguntas; 
+  }).catchError((error) {
+    print('Erro ao carregar dados: $error');
+    return [];
+  });
+}
+
+void verificarMudanca() {
+    if (pgr != pgrAnt) {
+      mudanca = true;
+      pgrAnt = pgrEnv;
+    }
+    if (pts != ptsAnt) {
+      mudanca = true;
+      ptsAnt = pts;
+    }
+    if (qtdRespondidas != qtdRespondidasAnt) {
+      mudanca = true;
+      qtdRespondidasAnt = qtdRespondidas;
+    }
+    if (qtdCertas != qtdCertasAnt) {
+      mudanca = true;
+      qtdCertasAnt = qtdCertas;
+    }
   }
+
+
+    void _marcarPerguntasComoRespondidas(List<List<Pergunta>> perguntasList, List<dynamic> respostas) {
+  for (var resposta in respostas) {
+    int perguntaId = resposta['respostaId']['perguntaId'];
+    String respostaDada = resposta['resposta'];
+    bool foiRespondida = resposta['foiRespondida'];
+
+    for (var sublist in perguntasList) {
+      for (var pergunta in sublist) {
+        if (pergunta.id == perguntaId) {
+          pergunta.isAnswered = foiRespondida;
+          pergunta.selectedOptionIndex = pergunta.ops.indexWhere((op) => op.opcao == respostaDada);
+          pergunta.isCorrect = pergunta.checkAnswer(pergunta.selectedOptionIndex!);
+        }
+      }
+    }
+  }
+}
 
    @override
   void dispose() {
-    Future.microtask(() async {
+  if(mudanca){
+          Future.microtask(() async {
       await apiService.enviarDados(pgrEnv, pts, qtdRespondidas, qtdCertas);
       await apiService.enviarRespostas(respondidas);
     });
+    } 
 
     super.dispose();
   }
@@ -175,9 +301,11 @@ Future<List<List<Pergunta>>>? _fetchPerguntas;
                 setState(() {
                    if(value == "gerais"){
                   normasAtuais = normasGerais;
+                  perguntasAtuais = perguntasGerais;
                   atual = "GERAIS";
                 } else if(value == "departamento"){
                   normasAtuais = normasDpt;
+                  perguntasAtuais = perguntasDepartamento;
                   atual = "DEPARTAMENTO";
                 }
                 });
@@ -198,33 +326,40 @@ Future<List<List<Pergunta>>>? _fetchPerguntas;
           )
         ],
       ),
-      body: Center(
+      body:  FutureBuilder<List<List<Pergunta>>>(
+  future: _fetchPerguntas,
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return Center(child: CircularProgressIndicator());
+    } else if (snapshot.hasError) {
+      return Center(child: Text('Erro ao carregar dados: ${snapshot.error}'));
+    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+      return Center(child: Text('Nenhuma pergunta disponível.'));
+    } else {
+      List<List<Pergunta>> perguntasList = perguntasAtuais;
+      int normasCount = normasAtuais.length;
+      return Center(
         child: Container(
           width: MediaQuery.of(context).size.width * 0.90,
           height: MediaQuery.of(context).size.height * 0.85,
-          child: Column(
+          child: PageView(
             children: [
-              Expanded(
-                child: PageView(
-                  children: [
-                   //for(int i = 0; i < normasGerais.length; i++)
-                      //_buildGuiaPage(normasAtuais[i], List<Pergunta> List, i)
-                   
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 8,
-              )
+              for (int i = 0; i < normasCount && i < perguntasList.length; i++)
+                _buildGuiaPage(perguntasList[i], normasAtuais[i]['nome'], normasAtuais[i]['descricao'], i + 1),
             ],
           ),
         ),
-      ),
+      );
+    }
+  },
+),
+
     );
   }
 
-  Widget _buildGuiaPage(String guia, List<Pergunta> perguntas, int videoIndex) {
-    double progress = (_globalProgress / 1000);
+  Widget _buildGuiaPage(List<Pergunta> perguntas, String nome, String descricao, int guiaIndex
+  ) {
+
 
     return Column(
       children: [
@@ -236,7 +371,7 @@ Future<List<List<Pergunta>>>? _fetchPerguntas;
             children: [
               Expanded(
                 child: LinearProgressIndicator(
-                  value: progress,
+                  value: pgr,
                   color: azulEuro,
                   backgroundColor: Colors.grey,
                   borderRadius: BorderRadius.all(Radius.circular(20)),
@@ -247,7 +382,7 @@ Future<List<List<Pergunta>>>? _fetchPerguntas;
                 width: 8,
               ),
               Text(
-                "${(progress * 10).toStringAsFixed(1)}%",
+                "${(pgr * 100).toStringAsFixed(1)}%",
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -271,7 +406,7 @@ Future<List<List<Pergunta>>>? _fetchPerguntas;
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
-                      guia,
+                      nome,
                       style:
                           TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                     ),
@@ -279,9 +414,7 @@ Future<List<List<Pergunta>>>? _fetchPerguntas;
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
-                      "A tecnologia tem transformado radicalmente a maneira como vivemos e interagimos no mundo moderno. Desde o surgimento da internet, nossa capacidade de comunicação e acesso à informação expandiu-se exponencialmente. Hoje, é possível conectar-se com pessoas em diferentes partes do globo instantaneamente, compartilhar conhecimento e colaborar em projetos com uma facilidade antes inimaginável. "
-                      "Os dispositivos móveis, como smartphones e tablets, tornaram-se extensões de nossos corpos, permitindo que permaneçamos conectados em qualquer lugar e a qualquer momento. As redes sociais, por sua vez, transformaram a maneira como nos relacionamos, criando novas formas de expressar nossas identidades e construir comunidades online. "
-                      "Além disso, a inteligência artificial e o aprendizado de máquina estão revolucionando setores como saúde, finanças e educação, oferecendo soluções inovadoras para problemas complexos. No entanto, com esses avanços vêm desafios significativos, como a privacidade dos dados e o impacto da automação no mercado de trabalho. Enfrentar esses desafios de forma ética será crucial para garantir que a tecnologia continue a beneficiar a sociedade como um todo.",
+                      descricao,
                       style: TextStyle(fontSize: 18),
                     ),
                   ),
@@ -340,13 +473,20 @@ Future<List<List<Pergunta>>>? _fetchPerguntas;
                               ),
                               onPressed: pergunta.isAnswered
                                   ? null
-                                  : () {
+                                  : ()  {
                                       setState(() {
-                                        _globalProgress += 20;
+                                       pgr += (4/1000);
                                         pergunta.selectedOptionIndex = index;
                                         pergunta.isAnswered = true;
-                                        pergunta.isCorrect =
-                                            pergunta.checkAnswer(index);
+                                        pergunta.isCorrect = pergunta.checkAnswer(index);
+                                        if(pergunta.isCorrect!){
+                                          pts += 1;
+                                          qtdCertas+=1;
+                                        }
+                                        qtdRespondidas+=1;
+                                        pgrEnv = (pgr * 100);
+                                        respondidas.add(new Resposta(idColaborador: idUser, idPergunta: pergunta.id, resposta:  pergunta.ops[index].opcao));
+                                        verificarMudanca();
                                       });
                                     },
                             ),
@@ -363,6 +503,14 @@ Future<List<List<Pergunta>>>? _fetchPerguntas;
       ],
     );
   }
+}
+
+
+class Norma{
+  String nome;
+  String descricao;
+
+  Norma({required this.nome, required this.descricao});
 }
 
 class Opcao {

@@ -1,40 +1,55 @@
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:flutter/material.dart';
 
-Widget campoForm(
-    {required TextEditingController controller,
-    TextInputType? keyboardType,
-    bool? obscureText,
-    required String label,
-    required bool erro,
-    void Function()? mostrarSenha,
-    required bool isSenha}) {
 
-      
+Widget campoForm({
+  required TextEditingController controller,
+  TextInputType? keyboardType,
+  bool? obscureText,
+  required String label,
+  required bool erro,
+  void Function()? mostrarSenha,
+  required bool isSenha,
+  required FormFieldValidator<String> validacao,
+}) {
+  final borderSide = BorderSide(
+    color: erro ? Colors.red : Colors.grey, // Cor padrão ou cor de erro
+  );
+
+  final focusedBorderSide = BorderSide(
+    color: azulEuro, // Cor quando o campo está em foco e sem erros
+  );
+
   return ConstrainedBox(
     constraints: const BoxConstraints(
       maxWidth: 400, // Defina o valor máximo desejado para a largura
     ),
-    child: TextField(
+    child: TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText!,
       decoration: InputDecoration(
         labelText: label,
         enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: erro
-                  ? Colors.red
-                  : Colors.grey, // Cor padrão quando não há erro
-            ),
-            borderRadius: raio,
-            ),
+          borderSide: borderSide,
+          borderRadius: raio, 
+        ),
         focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: erro ? Colors.red : azulEuro, // Cor quando o campo está em foco
-            ),
-            borderRadius: raio,
-            ),
+          borderSide: focusedBorderSide,
+          borderRadius: raio,
+        ),
+        errorBorder: const OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Colors.red, 
+          ),
+          borderRadius: raio,
+        ),
+        focusedErrorBorder: const OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Colors.red, // Cor para erro em foco
+          ),
+          borderRadius: raio,
+        ),
         suffixIcon: isSenha
             ? IconButton(
                 icon: Icon(
@@ -44,6 +59,8 @@ Widget campoForm(
               )
             : null,
       ),
+      validator: validacao,
     ),
   );
 }
+

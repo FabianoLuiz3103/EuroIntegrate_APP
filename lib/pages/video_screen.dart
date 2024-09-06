@@ -16,21 +16,25 @@ class VideoScreen extends StatefulWidget {
   State<VideoScreen> createState() => _VideoScreenState();
 }
 
-class _VideoScreenState extends State<VideoScreen>{
-
-  
-  
+class _VideoScreenState extends State<VideoScreen> {
   Future<List<List<Pergunta>>>? _fetchPerguntas;
   String? videoUm, videoDois, videoTres;
   double pgr = 0.0;
   double pgrEnv = 0.0;
   int pts = 0;
-  List<dynamic> respostas = [];
   int qtdRespondidas = 0;
   int qtdCertas = 0;
   List<Resposta> respondidas = [];
+  List<dynamic> respostas = [];
   int idUser = 0;
   late final ApiService apiService;
+
+  //verificações
+  bool mudanca = false;
+  double pgrAnt = 0.0;
+  int ptsAnt = 0;
+  int qtdRespondidasAnt = 0;
+  int qtdCertasAnt = 0;
 
   Future<List<List<Pergunta>>> _fetchData() async {
     var url = Uri.parse('$urlAPI/colaboradores/videos/${widget.id}');
@@ -47,9 +51,9 @@ class _VideoScreenState extends State<VideoScreen>{
       );
 
       if (response.statusCode == 200) {
-          List<int> bytes = response.bodyBytes;
-    String decodedBody = utf8.decode(bytes);
-    List<dynamic> data = jsonDecode(decodedBody);
+        List<int> bytes = response.bodyBytes;
+        String decodedBody = utf8.decode(bytes);
+        List<dynamic> data = jsonDecode(decodedBody);
         _initVideos(data);
         List<List<Pergunta>> perguntas = _inicializarPerguntas(data);
         return perguntas;
@@ -63,7 +67,7 @@ class _VideoScreenState extends State<VideoScreen>{
   }
 
   Future<List<dynamic>> _fetchDataSeq() async {
-    var url = Uri.parse('$urlAPI/colaboradores/videos-seq/${widget.id}');
+    var url = Uri.parse('$urlAPI/colaboradores/dados-aux/${widget.id}');
     String token = widget.token;
 
     try {
@@ -78,16 +82,21 @@ class _VideoScreenState extends State<VideoScreen>{
 
       if (response.statusCode == 200) {
         Map data = jsonDecode(response.body);
-        
+
         idUser = data['idColaborador'];
-        pgr = data['porcProgresso']/100;
+        pgr = data['porcProgresso'] / 100;
         pts = data['pontuacao'];
         qtdRespondidas = data['qtdRespondidas'];
         qtdCertas = data['qtdCertas'];
         respostas = data['respostas'];
-       // print(respostas);
-       return respostas;
-       
+
+       //variáveis para verificar se teve mudança
+        pgrAnt = pgr;
+        ptsAnt = pts;
+        qtdRespondidasAnt = qtdRespondidas;
+        qtdCertasAnt = qtdCertas;
+
+        return respostas;
       } else {
         throw Exception('Failed to load data');
       }
@@ -96,7 +105,6 @@ class _VideoScreenState extends State<VideoScreen>{
       return [];
     }
   }
-
 
   void _initVideos(List<dynamic>? data) {
     videoUm = data![0]['linkVideo'];
@@ -134,53 +142,69 @@ class _VideoScreenState extends State<VideoScreen>{
       _videoPlayerController3;
 
   Timer? _progressTimer;
-  double _globalProgress = 0.0;
   Set<int> _watchedVideos = {};
   Map<int, Timer?> _videoTimers = {};
 
   final CustomVideoPlayerSettings _customVideoPlayerSettings =
       const CustomVideoPlayerSettings(showSeekButtons: true);
 
-@override
-void initState() {
-  super.initState();
-  apiService = ApiService(token: widget.token, id: widget.id);
-  
-  _fetchPerguntas = Future.wait([
-    _fetchData(),     
-    _fetchDataSeq()   
-  ]).then((results) {
+  @override
+  void initState() {
+    super.initState();
+    apiService = ApiService(token: widget.token, id: widget.id);
 
-    List<List<Pergunta>> perguntas = results[0] as List<List<Pergunta>>;
-    List<dynamic> respostas = results[1];
-    _initializeVideoControllers();
-    _marcarPerguntasComoRespondidas(perguntas, respostas);
-    return perguntas; 
-  }).catchError((error) {
-    print('Erro ao carregar dados: $error');
-    return [];
-  });
-}
+    _fetchPerguntas =
+        Future.wait([_fetchData(), _fetchDataSeq()]).then((results) {
+      List<List<Pergunta>> perguntas = results[0] as List<List<Pergunta>>;
+      List<dynamic> respostas = results[1];
+      _initializeVideoControllers();
+      _marcarPerguntasComoRespondidas(perguntas, respostas);
+      return perguntas;
+    }).catchError((error) {
+      print('Erro ao carregar dados: $error');
+      return [];
+    });
+  }
 
+  void verificarMudanca() {
+    if (pgr != pgrAnt) {
+      mudanca = true;
+      pgrAnt = pgrEnv;
+    }
+    if (pts != ptsAnt) {
+      mudanca = true;
+      ptsAnt = pts;
+    }
+    if (qtdRespondidas != qtdRespondidasAnt) {
+      mudanca = true;
+      qtdRespondidasAnt = qtdRespondidas;
+    }
+    if (qtdCertas != qtdCertasAnt) {
+      mudanca = true;
+      qtdCertasAnt = qtdCertas;
+    }
+  }
 
+  void _marcarPerguntasComoRespondidas(
+      List<List<Pergunta>> perguntasList, List<dynamic> respostas) {
+    for (var resposta in respostas) {
+      int perguntaId = resposta['respostaId']['perguntaId'];
+      String respostaDada = resposta['resposta'];
+      bool foiRespondida = resposta['foiRespondida'];
 
-  void _marcarPerguntasComoRespondidas(List<List<Pergunta>> perguntasList, List<dynamic> respostas) {
-  for (var resposta in respostas) {
-    int perguntaId = resposta['respostaId']['perguntaId'];
-    String respostaDada = resposta['resposta'];
-    bool foiRespondida = resposta['foiRespondida'];
-
-    for (var sublist in perguntasList) {
-      for (var pergunta in sublist) {
-        if (pergunta.id == perguntaId) {
-          pergunta.isAnswered = foiRespondida;
-          pergunta.selectedOptionIndex = pergunta.ops.indexWhere((op) => op.opcao == respostaDada);
-          pergunta.isCorrect = pergunta.checkAnswer(pergunta.selectedOptionIndex!);
+      for (var sublist in perguntasList) {
+        for (var pergunta in sublist) {
+          if (pergunta.id == perguntaId) {
+            pergunta.isAnswered = foiRespondida;
+            pergunta.selectedOptionIndex =
+                pergunta.ops.indexWhere((op) => op.opcao == respostaDada);
+            pergunta.isCorrect =
+                pergunta.checkAnswer(pergunta.selectedOptionIndex!);
+          }
         }
       }
     }
   }
-}
 
   void _initializeVideoControllers() {
     _videoPlayerController1 = CachedVideoPlayerController.network(videoUm!)
@@ -208,8 +232,11 @@ void initState() {
           _videoTimers[videoIndex] = Timer.periodic(Duration(seconds: 1), (_) {
             if (videoController.value.isPlaying &&
                 !videoController.value.isBuffering) {
+                  
               setState(() {
-                _globalProgress += 2;
+                pgr += (2/1000);
+                pgrEnv = (pgr * 100);
+                verificarMudanca();
               });
             }
           });
@@ -219,8 +246,7 @@ void initState() {
         _videoTimers[videoIndex] = null;
       }
 
-      if (videoController.value.position ==
-          videoController.value.duration) {
+      if (videoController.value.position == videoController.value.duration) {
         setState(() {
           _watchedVideos.add(videoIndex);
         });
@@ -230,8 +256,6 @@ void initState() {
     });
   }
 
-
-
   @override
   void dispose() {
     _progressTimer?.cancel();
@@ -240,16 +264,17 @@ void initState() {
     _videoPlayerController3.dispose();
     _videoTimers.forEach((_, timer) => timer?.cancel());
     // Use Future.microtask to ensure that these functions run in the background.
-    Future.microtask(() async {
+    if(mudanca){
+          Future.microtask(() async {
+            print(pgrEnv);
       await apiService.enviarDados(pgrEnv, pts, qtdRespondidas, qtdCertas);
       await apiService.enviarRespostas(respondidas);
     });
+    }
 
     super.dispose();
   }
 
-  
- 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -263,21 +288,29 @@ void initState() {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Erro ao carregar dados: ${snapshot.error}'));
+            return Center(
+                child: Text('Erro ao carregar dados: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(child: Text('Nenhuma pergunta disponível.'));
           } else {
             List<List<Pergunta>> perguntasList = snapshot.data!;
-            List<CachedVideoPlayerController> controlles = [_videoPlayerController1, _videoPlayerController2, _videoPlayerController3];
-
+            List<CachedVideoPlayerController> controlles = [
+              _videoPlayerController1,
+              _videoPlayerController2,
+              _videoPlayerController3
+            ];
+            int controllerCount = controlles.length;
             return Center(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.90,
                 height: MediaQuery.of(context).size.height * 0.85,
                 child: PageView(
                   children: [
-                    for (int i = 0; i < perguntasList.length; i++)
-                      _buildVideoPage(perguntasList[i], controlles[i], i + 1, pgr),
+                    for (int i = 0;
+                        i < controllerCount && i < perguntasList.length;
+                        i++)
+                      _buildVideoPage(
+                          perguntasList[i], controlles[i], i + 1),
                   ],
                 ),
               ),
@@ -289,12 +322,9 @@ void initState() {
   }
 
   Widget _buildVideoPage(
-    List<Pergunta> perguntas,
-    CachedVideoPlayerController videoController,
-    int videoIndex,
-    double progressLoad
-  ) {
-    double progress = progressLoad + (_globalProgress / 1000);
+      List<Pergunta> perguntas,
+      CachedVideoPlayerController videoController,
+      int videoIndex) {
 
     return Column(
       children: [
@@ -304,7 +334,7 @@ void initState() {
             children: [
               Expanded(
                 child: LinearProgressIndicator(
-                  value: progress,
+                  value: pgr,
                   color: azulEuro,
                   backgroundColor: Colors.grey,
                   borderRadius: BorderRadius.all(Radius.circular(20)),
@@ -313,7 +343,7 @@ void initState() {
               ),
               SizedBox(width: 8),
               Text(
-                "${(progress * 100).toStringAsFixed(1)}%",
+                "${(pgr * 100).toStringAsFixed(1)}%",
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -362,8 +392,10 @@ void initState() {
                       child: ListView.builder(
                         itemCount: pergunta.ops.length,
                         itemBuilder: (context, index) {
-                          bool isSelected = pergunta.selectedOptionIndex == index;
-                          bool isCorrectOption = pergunta.ops[index].opcao == pergunta.respostaCorreta;
+                          bool isSelected =
+                              pergunta.selectedOptionIndex == index;
+                          bool isCorrectOption = pergunta.ops[index].opcao ==
+                              pergunta.respostaCorreta;
 
                           return ListTile(
                             title: TextButton(
@@ -385,24 +417,31 @@ void initState() {
                               ),
                               child: Text(
                                 pergunta.ops[index].texto,
-                                style: TextStyle(fontSize: 15, color: Colors.white),
+                                style: TextStyle(
+                                    fontSize: 15, color: Colors.white),
                               ),
                               onPressed: pergunta.isAnswered
                                   ? null
                                   : () {
                                       setState(() {
-                                        _globalProgress += 4;
+                                        pgr += (4/1000);
                                         pergunta.selectedOptionIndex = index;
                                         pergunta.isAnswered = true;
-                                        pergunta.isCorrect = pergunta.checkAnswer(index);
-                                        if(pergunta.isCorrect!){
+                                        pergunta.isCorrect =
+                                            pergunta.checkAnswer(index);
+                                        if (pergunta.isCorrect!) {
                                           pts += 1;
-                                          qtdCertas+=1;
-                                          print("Pontuação -----------------> ${pts}");
+                                          qtdCertas += 1;
                                         }
-                                        qtdRespondidas+=1;
-                                        pgrEnv = (progress*100);
-                                        respondidas.add(new Resposta(idColaborador: idUser, idPergunta: pergunta.id, resposta:  pergunta.ops[index].opcao));
+                                        qtdRespondidas += 1;
+                                        pgrEnv = (pgr * 100);
+                                        respondidas.add(new Resposta(
+                                            idColaborador: idUser,
+                                            idPergunta: pergunta.id,
+                                            resposta:
+                                                pergunta.ops[index].opcao));
+                                        verificarMudanca();
+                                    
                                       });
                                     },
                             ),
@@ -467,14 +506,17 @@ class Pergunta {
   }
 }
 
-class Resposta{
+class Resposta {
   int? idColaborador;
   int? idPergunta;
   String? resposta;
 
-Resposta({required this.idColaborador, required this.idPergunta, required this.resposta});
+  Resposta(
+      {required this.idColaborador,
+      required this.idPergunta,
+      required this.resposta});
 
- Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson() {
     return {
       'colaboradorId': idColaborador,
       'perguntaId': idPergunta,

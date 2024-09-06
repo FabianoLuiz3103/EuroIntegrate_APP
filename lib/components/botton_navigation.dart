@@ -15,27 +15,12 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
-      items: const <BottomNavigationBarItem>[
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.video_collection),
-          label: 'Videos',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: 'Perfil',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.menu_book_rounded),
-          label: 'Guia',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.emoji_events),
-          label: 'Conquistas',
-        ),
+      items:  <BottomNavigationBarItem>[
+        bottomItem(Icons.home, 'Home'),
+         bottomItem(Icons.video_collection, 'Vídeos'),
+          bottomItem(Icons.person, 'Perfil'),
+          bottomItem(Icons.menu_book_rounded, 'Guia'),
+          bottomItem(Icons.emoji_events, 'Conquistas'),
       ],
       selectedItemColor: azulEuro,
       unselectedItemColor: cinza,
@@ -43,4 +28,12 @@ class BottomNavBar extends StatelessWidget {
       onTap: onItemTapped,
     );
   }
+}
+
+
+BottomNavigationBarItem bottomItem(IconData icon, String label){
+  return BottomNavigationBarItem(
+          icon: Icon(icon),
+          label: label,
+        );
 }
