@@ -47,6 +47,8 @@ dependencies:
   open_file: ^3.5.3
   excel: ^2.0.6
   flutter_spinkit: ^5.1.0
+  fl_chart: ^0.69.0
+
   
   
   

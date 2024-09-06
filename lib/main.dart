@@ -3,6 +3,7 @@ import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/components/main_screen.dart';
 import 'package:eurointegrate_app/pages/admin/cadastro_onboarding.dart';
 import 'package:eurointegrate_app/pages/admin/home_admin.dart';
+import 'package:eurointegrate_app/pages/admin/listagem_integracao.dart';
 import 'package:eurointegrate_app/pages/conquistas_screen.dart';
 import 'package:eurointegrate_app/pages/guia.dart';
 import 'package:eurointegrate_app/pages/login.dart';
@@ -37,7 +38,7 @@ class MyApp extends StatelessWidget {
      Locale('pt', 'BR'), // Português do Brasil
 
   ],
-      home: const CadastroColaboradoresScreen(),
+      home: const ListagemIntegracao(),
     );
   }
 }
