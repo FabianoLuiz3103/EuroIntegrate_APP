@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:eurointegrate_app/components/consts.dart';
+import 'package:eurointegrate_app/components/progress.dart';
 import 'package:eurointegrate_app/pages/admin/components/banner.dart';
 import 'package:eurointegrate_app/pages/admin/components/rounded_button.dart';
 import 'package:file_picker/file_picker.dart';
@@ -8,42 +10,202 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 
 class CadastroColaboradoresScreen extends StatefulWidget {
-  const CadastroColaboradoresScreen({Key? key}) : super(key: key);
+  const CadastroColaboradoresScreen({super.key});
 
   @override
-  State<CadastroColaboradoresScreen> createState() => _CadastroColaboradoresScreenState();
+  State<CadastroColaboradoresScreen> createState() =>
+      _CadastroColaboradoresScreenState();
 }
 
-class _CadastroColaboradoresScreenState extends State<CadastroColaboradoresScreen> {
+class _CadastroColaboradoresScreenState
+    extends State<CadastroColaboradoresScreen> {
   List<Colaborador> _colaboradores = [];
   String? filePath;
+  List<Colaborador> readToApi = [];
+
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  Future<List<Colaborador>?> _getColaboradores() async {
+    var url = Uri.parse('$urlAPI/rh/listar-colaboradores');
+    String token =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI1NzM3MDcwfQ.g6vjOtqxDRsXiX2VPs2X82EftKMNU3NrnNHWVgnPdYI";
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return parseColaboradores(response.body);
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      print("Erro na requisição: $e");
+      return null;
+    }
+  }
+
+  Future<List<Colaborador>?> _sendColaboradores(List<Colaborador> colaboradores) async {
+  setState(() {
+    _isLoading = true;  // Inicia o estado de carregamento
+  });
+
+  var url = Uri.parse('$urlAPI/rh/cadastrar-colaboradores');
+  String token =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI1NzM3MDcwfQ.g6vjOtqxDRsXiX2VPs2X82EftKMNU3NrnNHWVgnPdYI";
+
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode(
+          colaboradores.map((colaborador) => colaborador.toJson()).toList()),
+      
+    );
+
+print(response.statusCode);
+    if (response.statusCode == 201) {
+      // Popula a lista de colaboradores com a resposta da requisição POST
+      print("Resposta da API: ${response.body}");
+
+      List<Colaborador> colaboradoresCadastrados = parseColaboradores(response.body);
+      setState(() {
+        _colaboradores = colaboradoresCadastrados;
+        _isLoading = false;  // Finaliza o estado de carregamento
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Colaboradores cadastrados com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      setState(() {
+        _isLoading = false;  // Finaliza o estado de carregamento
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Erro ao cadastrar colaboradores: ${response.reasonPhrase}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  } catch (e) {
+    setState(() {
+      _isLoading = false;  // Finaliza o estado de carregamento
+    });
+
+    print("Erro ao enviar colaboradores: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Erro ao enviar colaboradores. Verifique sua conexão.'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
+
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchColaboradores();
+  }
+
+  Future<void> _fetchColaboradores() async {
+    try {
+      final colaboradores = await _getColaboradores();
+      setState(() {
+        readToApi = colaboradores!;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erro ao carregar dados: $e';
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        body: Center(
+          child: SizedBox(
+            width: 150,
+            child: Align(
+              alignment: Alignment.center,
+              child: progressSkin(30),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        body: Center(child: Text(_errorMessage!)),
+      );
+    }
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-           const  BannerAdmin(titulo:Text(
-                    "COLABORADORES",
-                    style: TextStyle(
-                        fontSize: 25, fontWeight: FontWeight.w600,), ),
-                  icon: FontAwesomeIcons.userPlus,),
-            SizedBox(height: 20,),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
-              child: Text("Faça aqui o upload do .XLSX/.XLS para o cadastro dos novos colaboradores", textAlign: TextAlign.center,),
+            const BannerAdmin(
+              titulo: Text(
+                "COLABORADORES",
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              icon: FontAwesomeIcons.userPlus,
             ),
-            SizedBox(height: 20,),
-           btn_amarelo(label: 'Carregar arquivo', funcao: _pickFile),
-            SizedBox(height: 20,),
-            if(_colaboradores.isNotEmpty)
-              Text("COLABORADORES ADICIONADOS:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),),
-            SizedBox(height: 20,),
+            const SizedBox(
+              height: 20,
+            ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(18, 8, 18, 8),
+              child: Text(
+                "Faça aqui o upload do .XLSX/.XLS para o cadastro dos novos colaboradores",
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            btn_amarelo(label: 'Carregar arquivo', funcao: _pickFile),
+            const SizedBox(
+              height: 20,
+            ),
+            if (_colaboradores.isNotEmpty)
+              const Text(
+                "COLABORADORES ADICIONADOS:",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+            const SizedBox(
+              height: 20,
+            ),
             Expanded(
               child: ListView.builder(
                 itemCount: _colaboradores.length,
@@ -61,7 +223,7 @@ class _CadastroColaboradoresScreenState extends State<CadastroColaboradoresScree
                         ),
                       ),
                       subtitle: Text(
-                       _idDeptToDptName(_colaboradores[index].idDept),
+                        "kk",
                         style: const TextStyle(
                           fontSize: 15,
                           color: Colors.grey,
@@ -79,146 +241,149 @@ class _CadastroColaboradoresScreenState extends State<CadastroColaboradoresScree
   }
 
   void _pickFile() async {
-  final result = await FilePicker.platform.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: ['xls', 'xlsx'],
-  );
-
-  if (result == null) return;
-
-  List<List<dynamic>> fields = [];
-
-  filePath = kIsWeb ? result.files.first.name : result.files.first.path!;
-
-  if (!filePath!.endsWith('.xls') && !filePath!.endsWith('.xlsx')) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Erro: Por favor, selecione um arquivo .xls ou .xlsx.'),
-        backgroundColor: Colors.red,
-      ),
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['xls', 'xlsx'],
     );
-    return;
-  }
 
-  if (kIsWeb) {
-    final bytes = result.files.first.bytes!;
-    var excel = Excel.decodeBytes(bytes);
-    fields = _processExcel(excel);
-  } else {
-    var bytes = File(filePath!).readAsBytesSync();
-    var excel = Excel.decodeBytes(bytes);
-    fields = _processExcel(excel);
-  }
+    if (result == null) return;
 
-  if (!_validateHeaders(fields)) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Erro: O arquivo XLS não contém as colunas corretas.'),
-        backgroundColor: Colors.red,
-      ),
-    );
-    return;
-  }
+    List<List<dynamic>> fields = [];
 
-  List<String> errorMessages = [];
-  List<List<dynamic>> validRows = [];
+    filePath = kIsWeb ? result.files.first.name : result.files.first.path!;
 
-  
-  Set<String> emails = {};
-  Set<String> telefones = {};
-  Set<String> cpfs = {};
-
-  for (int i = 0; i < fields.length; i++) {
-    var row = fields[i];
-    if (row.isEmpty || row.every((element) => element == null || element.toString().trim().isEmpty)) {
-      continue;
-    }
-
-    if (row.length < 9) {
-      errorMessages.add('Linha ${i + 1}: Número insuficiente de colunas.');
-      continue;
-    }
-
-    // Valida a unicidade de CPF, email e telefone
-    String email = row[3].toString().trim();
-    String telefone = row[4].toString().trim();
-    String cpf = row[2].toString().trim();
-
-    if (emails.contains(email)) {
-      errorMessages.add('Linha ${i + 1}: E-mail duplicado');
-    } else {
-      emails.add(email);
-    }
-
-    if (telefones.contains(telefone)) {
-      errorMessages.add('Linha ${i + 1}: Telefone duplicado');
-    } else {
-      telefones.add(telefone);
-    }
-
-    if (cpfs.contains(cpf)) {
-      errorMessages.add('Linha ${i + 1}: CPF duplicado');
-    } else {
-      cpfs.add(cpf);
-    }
-
-        bool colaboradorExiste = colaboradores.any((colaborador) => colaborador.cpf == cpf);
-    if (colaboradorExiste) {
-      errorMessages.add('Linha ${i + 1}: Colaborador já existe na base de dados');
-      continue;
-    }
-
-    var errors = _validateRow(row);
-    if (errors.isNotEmpty) {
-      errorMessages.add('Linha ${i + 1}: ${errors.join(", ")}');
-      continue;
-    }
-
-    validRows.add(row);
-  }
-
-  if (errorMessages.isNotEmpty) {
-    _showErrorDialog(errorMessages);
-  } else {
-    setState(() {
-      _colaboradores = _mapCsvToColaboradores(validRows);
-    });
-  }
-}
-
-
-void _showErrorDialog(List<String> errorMessages) {
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Erros de Validação'),
-        content: SizedBox(
-          width: double.maxFinite, 
-          height: 100,
-          child: SingleChildScrollView(
-                  child: ListBody(
-                    children: <Widget>[
-                      Text('Erros encontrados:\n${errorMessages.join("\n")}'),
-                    ],
-                  ),
-                ),
+    if (!filePath!.endsWith('.xls') && !filePath!.endsWith('.xlsx')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro: Por favor, selecione um arquivo .xls ou .xlsx.'),
+          backgroundColor: Colors.red,
         ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('OK'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
       );
-    },
-  );
-}
+      return;
+    }
 
+    if (kIsWeb) {
+      final bytes = result.files.first.bytes!;
+      var excel = Excel.decodeBytes(bytes);
+      fields = _processExcel(excel);
+    } else {
+      var bytes = File(filePath!).readAsBytesSync();
+      var excel = Excel.decodeBytes(bytes);
+      fields = _processExcel(excel);
+    }
 
+    if (!_validateHeaders(fields)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro: O arquivo XLS não contém as colunas corretas.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    List<String> errorMessages = [];
+    List<List<dynamic>> validRows = [];
+
+    Set<String> emails = {};
+    Set<String> telefones = {};
+    Set<String> cpfs = {};
+
+    for (int i = 0; i < fields.length; i++) {
+      var row = fields[i];
+      if (row.isEmpty ||
+          row.every((element) =>
+              element == null || element.toString().trim().isEmpty)) {
+        continue;
+      }
+
+      if (row.length < 9) {
+        errorMessages.add('Linha ${i + 1}: Número insuficiente de colunas.');
+        continue;
+      }
+
+      // Valida a unicidade de CPF, email e telefone
+      String email = row[3].toString().trim();
+      String telefone = row[4].toString().trim();
+      String cpf = row[2].toString().trim();
+
+      if (emails.contains(email)) {
+        errorMessages.add('Linha ${i + 1}: E-mail duplicado');
+      } else {
+        emails.add(email);
+      }
+
+      if (telefones.contains(telefone)) {
+        errorMessages.add('Linha ${i + 1}: Telefone duplicado');
+      } else {
+        telefones.add(telefone);
+      }
+
+      if (cpfs.contains(cpf)) {
+        errorMessages.add('Linha ${i + 1}: CPF duplicado');
+      } else {
+        cpfs.add(cpf);
+      }
+
+      bool colaboradorExiste = readToApi.any((colaborador) =>
+          colaborador.cpf == cpf ||
+          colaborador.email == email ||
+          colaborador.telefone == telefone);
+
+      if (colaboradorExiste) {
+        errorMessages
+            .add('Linha ${i + 1}: Colaborador já existe na base de dados');
+        continue;
+      }
+
+      var errors = _validateRow(row);
+      if (errors.isNotEmpty) {
+        errorMessages.add('Linha ${i + 1}: ${errors.join(", ")}');
+        continue;
+      }
+
+      validRows.add(row);
+    }
+
+    if (errorMessages.isNotEmpty) {
+      _showErrorDialog(errorMessages);
+    } else {
+      setState(() {
+        _colaboradores = _mapCsvToColaboradores(validRows);
+      });
+      await _sendColaboradores(_colaboradores);
+    }
+  }
+
+  void _showErrorDialog(List<String> errorMessages) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Erros de Validação'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 100,
+            child: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text('Erros encontrados:\n${errorMessages.join("\n")}'),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   List<List<dynamic>> _processExcel(Excel excel) {
     List<List<dynamic>> rows = [];
@@ -239,7 +404,17 @@ void _showErrorDialog(List<String> errorMessages) {
         .map((header) => header.toString().toLowerCase().trim())
         .toList();
 
-    const requiredHeaders = ['nome', 'sobrenome', 'cpf', 'email', 'telefone', 'dataadmissao', 'matricula', 'datanascimento', 'departamento'];
+    const requiredHeaders = [
+      'nome',
+      'sobrenome',
+      'cpf',
+      'email',
+      'telefone',
+      'dataadmissao',
+      'matricula',
+      'datanascimento',
+      'departamento'
+    ];
 
     if (headers.length != requiredHeaders.length) {
       return false;
@@ -268,95 +443,113 @@ void _showErrorDialog(List<String> errorMessages) {
     }
 
     if (!_isTodayOrPastDate(_formatData(row[5].toString()))) {
-      errors.add('Data de admissão inválida - a data de admissão deve ter como limite o dia de hoje!');
+      errors.add(
+          'Data de admissão inválida - a data de admissão deve ter como limite o dia de hoje!');
     }
     if (!_isOver18YearsOld(_formatData(row[7].toString()))) {
-      errors.add('Data de nascimento inválida - o colaborador DEVE ter mais de 18 anos!');
+      errors.add(
+          'Data de nascimento inválida - o colaborador DEVE ter mais de 18 anos!');
     }
 
     int idDept = _dptNameToIdDept(row[8].toString());
-  if (idDept == 0) {
-    errors.add('Departamento inválido');
-  }
+    if (idDept == 0) {
+      errors.add('Departamento inválido');
+    }
 
     return errors;
   }
 
-  DateTime _formatData(String data){
+  DateTime _formatData(String data) {
     var _dt = DateTime.parse(data);
     return DateTime.parse(DateFormat("yyyy-MM-dd").format(_dt));
-
   }
 
   bool _isOver18YearsOld(DateTime date) {
-  final today = DateTime.now();
-  final eighteenYearsAgo = DateTime(today.year - 18, today.month, today.day);
-  return date.isBefore(eighteenYearsAgo);
-}
+    final today = DateTime.now();
+    final eighteenYearsAgo = DateTime(today.year - 18, today.month, today.day);
+    return date.isBefore(eighteenYearsAgo);
+  }
 
-bool _isTodayOrPastDate(DateTime date) {
-  final today = DateTime.now();
-  final todayWithoutTime = DateTime(today.year, today.month, today.day);
-  final dateWithoutTime = DateTime(date.year, date.month, date.day);
-  return dateWithoutTime.isBefore(todayWithoutTime) || dateWithoutTime.isAtSameMomentAs(todayWithoutTime);
-}
-
-
+  bool _isTodayOrPastDate(DateTime date) {
+    final today = DateTime.now();
+    final todayWithoutTime = DateTime(today.year, today.month, today.day);
+    final dateWithoutTime = DateTime(date.year, date.month, date.day);
+    return dateWithoutTime.isBefore(todayWithoutTime) ||
+        dateWithoutTime.isAtSameMomentAs(todayWithoutTime);
+  }
 
   int _dptNameToIdDept(String departamento) {
-  switch (departamento.toLowerCase()) {
-    case 'tecnologia da informação (ti)':
-      return 1;
-    case 'financeiro':
-      return 2;
-    case 'marketing':
-      return 3;
-    case 'jurídico':
-      return 4;
-    case 'recursos humanos (rh)':
-      return 5;
-    case 'riscos':
-      return 6;
-    default:
-      return 0; 
+    switch (departamento.toLowerCase()) {
+      case 'tecnologia da informação (ti)':
+        return 1;
+      case 'financeiro':
+        return 2;
+      case 'marketing':
+        return 3;
+      case 'jurídico':
+        return 4;
+      case 'recursos humanos (rh)':
+        return 5;
+      case 'riscos':
+        return 6;
+      default:
+        return 0;
+    }
   }
-}
 
-String _idDeptToDptName(int idDept){
-  switch (idDept){
-    case 1:
-      return 'tecnologia da informação (ti)'.toUpperCase();
-    case 2:
-      return 'financeiro'.toUpperCase();
-    case 3:
-      return 'marketing'.toUpperCase();
-    case 4:
-      return 'jurídico'.toUpperCase();
-    case 5:
-      return 'recursos humanos (rh)'.toUpperCase();
-    case 6:
-      return 'riscos'.toUpperCase();
-    default:
-      return 'não encontrado'.toUpperCase();
+  Departamento _nomeDptToDepartamento(String departamento) {
+    switch (departamento.toLowerCase()) {
+      case 'tecnologia da informação (ti)':
+        return Departamento(id: 1, nome: departamento);
+      case 'financeiro':
+        return Departamento(id: 1, nome: departamento);
+      case 'marketing':
+        return Departamento(id: 1, nome: departamento);
+      case 'jurídico':
+        return Departamento(id: 1, nome: departamento);
+      case 'recursos humanos (rh)':
+        return Departamento(id: 1, nome: departamento);
+      case 'riscos':
+        return Departamento(id: 1, nome: departamento);
+      default:
+        return Departamento(id: 9, nome: 'NE');
+    }
   }
-}
 
+  String _idDeptToDptName(int idDept) {
+    switch (idDept) {
+      case 1:
+        return 'tecnologia da informação (ti)'.toUpperCase();
+      case 2:
+        return 'financeiro'.toUpperCase();
+      case 3:
+        return 'marketing'.toUpperCase();
+      case 4:
+        return 'jurídico'.toUpperCase();
+      case 5:
+        return 'recursos humanos (rh)'.toUpperCase();
+      case 6:
+        return 'riscos'.toUpperCase();
+      default:
+        return 'não encontrado'.toUpperCase();
+    }
+  }
 
   List<Colaborador> _mapCsvToColaboradores(List<List<dynamic>> fields) {
     try {
       return fields.map((row) {
-        int idDept = _dptNameToIdDept(row[8].toString());
-        
+        Departamento dept = _nomeDptToDepartamento(row[8].toString());
+
         return Colaborador(
           nome: row[0].toString(),
           sobrenome: row[1].toString(),
-          cpf: row[2].toString(),
+          cpf: cleanCpf(row[2].toString()),
           email: row[3].toString(),
           telefone: row[4].toString(),
           dataAdmissao: DateTime.parse(row[5].toString()),
           matricula: row[6].toString(),
           dataNascimento: DateTime.parse(row[7].toString()),
-          idDept: idDept
+          departamento: dept,
         );
       }).toList();
     } catch (e) {
@@ -366,6 +559,31 @@ String _idDeptToDptName(int idDept){
   }
 }
 
+class Departamento {
+  int id;
+  String nome;
+
+  Departamento({
+    required this.id,
+    required this.nome,
+  });
+
+  factory Departamento.fromJson(Map<String, dynamic> json) {
+    return Departamento(
+      id: json['id'],
+      nome: json['nome'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'nome': nome,
+    };
+  }
+}
+
+// Classe Colaborador
 class Colaborador {
   String nome;
   String sobrenome;
@@ -375,7 +593,7 @@ class Colaborador {
   DateTime dataAdmissao;
   String matricula;
   DateTime dataNascimento;
-  int idDept;
+  Departamento departamento;
 
   Colaborador({
     required this.nome,
@@ -384,234 +602,50 @@ class Colaborador {
     required this.email,
     required this.telefone,
     required this.dataAdmissao,
-    required this.matricula, 
+    required this.matricula,
     required this.dataNascimento,
-    required this.idDept
+    required this.departamento,
   });
+
+  factory Colaborador.fromJson(Map<String, dynamic> json) {
+    return Colaborador(
+      nome: json['nome'],
+      sobrenome: json['sobrenome'],
+      cpf: cleanCpf(json['cpf']),
+      email: json['email'],
+      telefone: json['telefone'],
+      dataAdmissao: DateTime.parse(json['dataAdmissao']),
+      matricula: json['matricula'],
+      dataNascimento: DateTime.parse(json['dataNascimento']),
+      departamento: Departamento.fromJson(json['departamento']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'nome': nome,
+      'sobrenome': sobrenome,
+      'cpf': cpf,
+      'email': email,
+      'telefone': telefone,
+      'dataAdmissao': dataAdmissao.toIso8601String(),
+      'matricula': matricula,
+      'dataNascimento': dataNascimento.toIso8601String(),
+      'departamento': departamento.toJson(),
+      'colaboradorRh': {
+        'id':
+            1, // Aqui você pode usar valores fixos ou parametrizados conforme necessário
+        'email': 'faah772@gmail.com'
+      },
+    };
+  }
 }
 
+List<Colaborador> parseColaboradores(String responseBody) {
+  final parsed = jsonDecode(responseBody).cast<Map<String, dynamic>>();
+  return parsed.map<Colaborador>((json) => Colaborador.fromJson(json)).toList();
+}
 
-
-
- final colaboradores = <Colaborador>[
-    Colaborador(
-      nome: 'Ana',
-      sobrenome: 'Silva',
-      cpf: '12345678901',
-      email: 'ana.silva@example.com',
-      telefone: '+55 1122334455',
-      dataAdmissao: DateTime(2023, 1, 15),
-      matricula: '000001',
-      dataNascimento: DateTime(1990, 5, 12),
-      idDept: 1,
-    ),
-    Colaborador(
-      nome: 'Carlos',
-      sobrenome: 'Santos',
-      cpf: '23456789012',
-      email: 'carlos.santos@example.com',
-      telefone: '+55 2233445566',
-      dataAdmissao: DateTime(2022, 3, 20),
-      matricula: '000002',
-      dataNascimento: DateTime(1985, 8, 24),
-      idDept: 2,
-    ),
-    Colaborador(
-      nome: 'Maria',
-      sobrenome: 'Oliveira',
-      cpf: '34567890123',
-      email: 'maria.oliveira@example.com',
-      telefone: '+55 3344556677',
-      dataAdmissao: DateTime(2024, 7, 30),
-      matricula: '000003',
-      dataNascimento: DateTime(1992, 12, 8),
-      idDept: 3,
-    ),
-    Colaborador(
-      nome: 'José',
-      sobrenome: 'Pereira',
-      cpf: '45678901234',
-      email: 'jose.pereira@example.com',
-      telefone: '+55 4455667788',
-      dataAdmissao: DateTime(2021, 11, 5),
-      matricula: '000004',
-      dataNascimento: DateTime(1980, 6, 15),
-      idDept: 4,
-    ),
-    Colaborador(
-      nome: 'Patrícia',
-      sobrenome: 'Almeida',
-      cpf: '56789012345',
-      email: 'patricia.almeida@example.com',
-      telefone: '+55 5566778899',
-      dataAdmissao: DateTime(2023, 2, 14),
-      matricula: '000005',
-      dataNascimento: DateTime(1987, 4, 20),
-      idDept: 5,
-    ),
-    Colaborador(
-      nome: 'Paulo',
-      sobrenome: 'Costa',
-      cpf: '67890123456',
-      email: 'paulo.costa@example.com',
-      telefone: '+55 6677889900',
-      dataAdmissao: DateTime(2022, 9, 25),
-      matricula: '000006',
-      dataNascimento: DateTime(1991, 11, 1),
-      idDept: 6,
-    ),
-    Colaborador(
-      nome: 'Fernanda',
-      sobrenome: 'Ferreira',
-      cpf: '78901234567',
-      email: 'fernanda.ferreira@example.com',
-      telefone: '+55 7788990011',
-      dataAdmissao: DateTime(2024, 5, 16),
-      matricula: '000007',
-      dataNascimento: DateTime(1994, 7, 7),
-      idDept: 1,
-    ),
-    Colaborador(
-      nome: 'Lucas',
-      sobrenome: 'Rodrigues',
-      cpf: '89012345678',
-      email: 'lucas.rodrigues@example.com',
-      telefone: '+55 8899001122',
-      dataAdmissao: DateTime(2023, 8, 22),
-      matricula: '000008',
-      dataNascimento: DateTime(1995, 3, 30),
-      idDept: 2,
-    ),
-    Colaborador(
-      nome: 'Juliana',
-      sobrenome: 'Martins',
-      cpf: '90123456789',
-      email: 'juliana.martins@example.com',
-      telefone: '+55 9900112233',
-      dataAdmissao: DateTime(2022, 6, 10),
-      matricula: '000009',
-      dataNascimento: DateTime(1988, 9, 5),
-      idDept: 3,
-    ),
-    Colaborador(
-      nome: 'Roberto',
-      sobrenome: 'Gomes',
-      cpf: '01234567890',
-      email: 'roberto.gomes@example.com',
-      telefone: '+55 1001223344',
-      dataAdmissao: DateTime(2021, 12, 19),
-      matricula: '000010',
-      dataNascimento: DateTime(1982, 10, 17),
-      idDept: 4,
-    ),
-    Colaborador(
-      nome: 'Mariana',
-      sobrenome: 'Silva',
-      cpf: '12345678912',
-      email: 'mariana.silva@example.com',
-      telefone: '+55 2112334455',
-      dataAdmissao: DateTime(2024, 3, 12),
-      matricula: '000011',
-      dataNascimento: DateTime(1993, 1, 21),
-      idDept: 5,
-    ),
-    Colaborador(
-      nome: 'Gabriel',
-      sobrenome: 'Santos',
-      cpf: '23456789023',
-      email: 'gabriel.santos@example.com',
-      telefone: '+55 3223445566',
-      dataAdmissao: DateTime(2023, 4, 25),
-      matricula: '000012',
-      dataNascimento: DateTime(1990, 6, 18),
-      idDept: 6,
-    ),
-    Colaborador(
-      nome: 'Claudia',
-      sobrenome: 'Oliveira',
-      cpf: '34567890134',
-      email: 'claudia.oliveira@example.com',
-      telefone: '+55 4334556677',
-      dataAdmissao: DateTime(2022, 7, 14),
-      matricula: '000013',
-      dataNascimento: DateTime(1984, 2, 2),
-      idDept: 1,
-    ),
-    Colaborador(
-      nome: 'Eduardo',
-      sobrenome: 'Pereira',
-      cpf: '45678901245',
-      email: 'eduardo.pereira@example.com',
-      telefone: '+55 5445667788',
-      dataAdmissao: DateTime(2024, 1, 29),
-      matricula: '000014',
-      dataNascimento: DateTime(1986, 12, 27),
-      idDept: 2,
-    ),
-    Colaborador(
-      nome: 'Tatiane',
-      sobrenome: 'Almeida',
-      cpf: '56789012356',
-      email: 'tatiane.almeida@example.com',
-      telefone: '+55 6556778899',
-      dataAdmissao: DateTime(2021, 10, 11),
-      matricula: '100015',
-      dataNascimento: DateTime(1992, 8, 16),
-      idDept: 3,
-    ),
-    Colaborador(
-      nome: 'Rafael',
-      sobrenome: 'Costa',
-      cpf: '67890123467',
-      email: 'rafael.costa@example.com',
-      telefone: '+55 7667889900',
-      dataAdmissao: DateTime(2023, 6, 23),
-      matricula: '000016',
-      dataNascimento: DateTime(1989, 4, 9),
-      idDept: 4,
-    ),
-    Colaborador(
-      nome: 'Luana',
-      sobrenome: 'Ferreira',
-      cpf: '78901234578',
-      email: 'luana.ferreira@example.com',
-      telefone: '+55 8778990011',
-      dataAdmissao: DateTime(2024, 7, 5),
-      matricula: '000017',
-      dataNascimento: DateTime(1996, 11, 15),
-      idDept: 5,
-    ),
-    Colaborador(
-      nome: 'Marcos',
-      sobrenome: 'Rodrigues',
-      cpf: '89012345689',
-      email: 'marcos.rodrigues@example.com',
-      telefone: '+55 9889001122',
-      dataAdmissao: DateTime(2022, 9, 14),
-      matricula: '000018',
-      dataNascimento: DateTime(1988, 5, 19),
-      idDept: 6,
-    ),
-    Colaborador(
-      nome: 'Beatriz',
-      sobrenome: 'Martins',
-      cpf: '90123456790',
-      email: 'beatriz.martins@example.com',
-      telefone: '+55 1999002233',
-      dataAdmissao: DateTime(2021, 11, 6),
-      matricula: '000019',
-      dataNascimento: DateTime(1994, 7, 21),
-      idDept: 1,
-    ),
-    Colaborador(
-      nome: 'Fernando',
-      sobrenome: 'Gomes',
-      cpf: '01234567891',
-      email: 'fernando.gomes@example.com',
-      telefone: '+55 2100223344',
-      dataAdmissao: DateTime(2023, 8, 4),
-      matricula: '000020',
-      dataNascimento: DateTime(1983, 3, 12),
-      idDept: 2,
-    ),
-  ];
+String cleanCpf(String cpf) {
+  return cpf.replaceAll(RegExp(r'[.-]'), '');
+}

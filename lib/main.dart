@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
      Locale('pt', 'BR'), // Português do Brasil
 
   ],
-      home: const MainScreenAdmin(),
+      home: const CadastroColaboradoresScreen(),
     );
   }
 }

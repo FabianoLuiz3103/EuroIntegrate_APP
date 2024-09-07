@@ -56,8 +56,8 @@ setState(() {
     setState(() {
       if (response!.statusCode == 200) {
         Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-        String token = jsonResponse["token"]["token"];
-        int id = jsonResponse["idColaborador"]["idColaborador"];
+        String token = jsonResponse["token"];
+        int id = jsonResponse["idUser"];
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
