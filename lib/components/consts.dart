@@ -17,4 +17,4 @@ String formatarData(String data) {
   DateTime dateTime = DateTime.parse(data);
   return DateFormat('dd/MM/yy').format(dateTime);
 }
-const String urlAPI = "https://spicy-candles-learn.loca.lt";
+const String urlAPI = "https://soft-deer-clap.loca.lt";

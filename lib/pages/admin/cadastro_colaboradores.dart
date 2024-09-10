@@ -32,7 +32,7 @@ class _CadastroColaboradoresScreenState
   Future<List<Colaborador>?> _getColaboradores() async {
     var url = Uri.parse('$urlAPI/rh/listar-colaboradores');
     String token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI1NzM3MDcwfQ.g6vjOtqxDRsXiX2VPs2X82EftKMNU3NrnNHWVgnPdYI";
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI1OTkyMDk1fQ.Ih17yDFoK_SsB7dmR1GtvXEEt5Ks2l6dP6i7wBhkrq8";
 
     try {
       final response = await http.get(
@@ -45,7 +45,7 @@ class _CadastroColaboradoresScreenState
       );
 
       if (response.statusCode == 200) {
-        return parseColaboradores(response.body);
+        return parseColaboradores(utf8.decode(response.bodyBytes));
       } else {
         throw Exception('Failed to load data');
       }
@@ -55,6 +55,11 @@ class _CadastroColaboradoresScreenState
     }
   }
 
+
+
+
+
+
   Future<List<Colaborador>?> _sendColaboradores(List<Colaborador> colaboradores) async {
   setState(() {
     _isLoading = true;  // Inicia o estado de carregamento
@@ -62,8 +67,7 @@ class _CadastroColaboradoresScreenState
 
   var url = Uri.parse('$urlAPI/rh/cadastrar-colaboradores');
   String token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI1NzM3MDcwfQ.g6vjOtqxDRsXiX2VPs2X82EftKMNU3NrnNHWVgnPdYI";
-
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI1OTkyMDk1fQ.Ih17yDFoK_SsB7dmR1GtvXEEt5Ks2l6dP6i7wBhkrq8";
 
   try {
     final response = await http.post(
@@ -76,49 +80,37 @@ class _CadastroColaboradoresScreenState
           colaboradores.map((colaborador) => colaborador.toJson()).toList()),
       
     );
+       await Future.delayed(
+        const Duration(seconds: 2));
 
 print(response.statusCode);
     if (response.statusCode == 201) {
-      // Popula a lista de colaboradores com a resposta da requisição POST
-      print("Resposta da API: ${response.body}");
-
-      List<Colaborador> colaboradoresCadastrados = parseColaboradores(response.body);
-      setState(() {
-        _colaboradores = colaboradoresCadastrados;
-        _isLoading = false;  // Finaliza o estado de carregamento
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
+       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Colaboradores cadastrados com sucesso!'),
           backgroundColor: Colors.green,
         ),
       );
+     
+      
+
+      List<Colaborador> colaboradoresCadastrados = parseColaboradores(utf8.decode(response.bodyBytes));
+      setState(() {
+        _colaboradores = colaboradoresCadastrados;
+        _isLoading = false;  // Finaliza o estado de carregamento
+      });
+
+     
     } else {
       setState(() {
         _isLoading = false;  // Finaliza o estado de carregamento
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'Erro ao cadastrar colaboradores: ${response.reasonPhrase}'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   } catch (e) {
     setState(() {
       _isLoading = false;  // Finaliza o estado de carregamento
     });
-
-    print("Erro ao enviar colaboradores: $e");
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Erro ao enviar colaboradores. Verifique sua conexão.'),
-        backgroundColor: Colors.red,
-      ),
-    );
   }
 }
 
@@ -200,8 +192,8 @@ print(response.statusCode);
             ),
             if (_colaboradores.isNotEmpty)
               const Text(
-                "COLABORADORES ADICIONADOS:",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                "COLABORADORES RECÉM ADICIONADOS:",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             const SizedBox(
               height: 20,
@@ -222,11 +214,14 @@ print(response.statusCode);
                           color: Colors.black,
                         ),
                       ),
-                      subtitle: Text(
-                        "kk",
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: Colors.grey,
+                      subtitle: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          "DEPARTAMENTO: ${_colaboradores[index].departamento.nome}  -----  RM: ${_colaboradores[index].matricula}",
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                     ),
@@ -352,6 +347,7 @@ print(response.statusCode);
         _colaboradores = _mapCsvToColaboradores(validRows);
       });
       await _sendColaboradores(_colaboradores);
+     _fetchColaboradores();
     }
   }
 
@@ -634,7 +630,7 @@ class Colaborador {
       'departamento': departamento.toJson(),
       'colaboradorRh': {
         'id':
-            1, // Aqui você pode usar valores fixos ou parametrizados conforme necessário
+            1, 
         'email': 'faah772@gmail.com'
       },
     };
