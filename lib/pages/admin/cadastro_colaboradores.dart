@@ -13,7 +13,9 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
 class CadastroColaboradoresScreen extends StatefulWidget {
-  const CadastroColaboradoresScreen({super.key});
+  final String token;
+  final int id;
+  const CadastroColaboradoresScreen({super.key, required this.token, required this.id});
 
   @override
   State<CadastroColaboradoresScreen> createState() =>
@@ -31,14 +33,13 @@ class _CadastroColaboradoresScreenState
 
   Future<List<Colaborador>?> _getColaboradores() async {
     var url = Uri.parse('$urlAPI/rh/listar-colaboradores');
-    String token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI1OTkyMDk1fQ.Ih17yDFoK_SsB7dmR1GtvXEEt5Ks2l6dP6i7wBhkrq8";
+    String tk = widget.token;
 
     try {
       final response = await http.get(
         url,
         headers: {
-          "Authorization": "Bearer $token",
+          "Authorization": "Bearer $tk",
           "Content-Type": "application/json",
           "ngrok-skip-browser-warning": "true",
         },
@@ -65,15 +66,14 @@ class _CadastroColaboradoresScreenState
     _isLoading = true;  // Inicia o estado de carregamento
   });
 
-  var url = Uri.parse('$urlAPI/rh/cadastrar-colaboradores');
-  String token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI1OTkyMDk1fQ.Ih17yDFoK_SsB7dmR1GtvXEEt5Ks2l6dP6i7wBhkrq8";
+  var url = Uri.parse('$urlAPI/rh/cadastrar-colaboradores/${widget.id}');
+  String tkn = widget.token;
 
   try {
     final response = await http.post(
       url,
       headers: {
-        "Authorization": "Bearer $token",
+        "Authorization": "Bearer $tkn",
         "Content-Type": "application/json",
       },
       body: jsonEncode(
@@ -112,6 +112,7 @@ print(response.statusCode);
       _isLoading = false;  // Finaliza o estado de carregamento
     });
   }
+  return null;
 }
 
 
@@ -628,11 +629,6 @@ class Colaborador {
       'matricula': matricula,
       'dataNascimento': dataNascimento.toIso8601String(),
       'departamento': departamento.toJson(),
-      'colaboradorRh': {
-        'id':
-            1, 
-        'email': 'faah772@gmail.com'
-      },
     };
   }
 }

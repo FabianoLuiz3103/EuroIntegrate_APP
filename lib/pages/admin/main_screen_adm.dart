@@ -7,8 +7,10 @@ import 'package:eurointegrate_app/pages/admin/listagem_integracao.dart';
 import 'package:flutter/material.dart';
 
 class MainScreenAdmin extends StatefulWidget {
+  final String token;
+  final int id;
  
-  const MainScreenAdmin({Key? key,}) : super(key: key);
+  const MainScreenAdmin({Key? key, required this.token, required this.id}) : super(key: key);
 
   @override
   _MainScreenAdminState createState() => _MainScreenAdminState();
@@ -21,10 +23,10 @@ class _MainScreenAdminState extends State<MainScreenAdmin> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> _screens = [
-      HomeAdminScreen(),
-      CadastroColaboradoresScreen(),
-      CadastroOnboardingScreen(),
-      ListagemIntegracao(),
+      HomeAdminScreen(token: widget.token, id: widget.id),
+      CadastroColaboradoresScreen(token: widget.token, id: widget.id),
+      CadastroOnboardingScreen(token: widget.token, id: widget.id,),
+      ListagemIntegracao(token: widget.token,),
       DashsIntegracaoScreen(),
     ];
 

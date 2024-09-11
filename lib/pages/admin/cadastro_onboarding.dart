@@ -10,7 +10,9 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 class CadastroOnboardingScreen extends StatefulWidget {
-  const CadastroOnboardingScreen({super.key});
+  final String token;
+  final int id;
+  const CadastroOnboardingScreen({super.key, required this.token, required this.id});
 
   @override
   State<CadastroOnboardingScreen> createState() =>
@@ -62,14 +64,13 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
   Future<List<Departamento>?> _getDpts() async {
     await Future.delayed(const Duration(seconds: 2));
     var url = Uri.parse('$urlAPI/rh/listar-departamentos');
-    String token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI2MDEwODc3fQ.wZGwWbpXhDNfGD1Egx1bXfdGZ0IJNUaR9j9KjXiHXys";
+    String tkn = widget.token;
 
     try {
       final response = await http.get(
         url,
         headers: {
-          "Authorization": "Bearer $token",
+          "Authorization": "Bearer $tkn",
           "Content-Type": "application/json",
           "ngrok-skip-browser-warning": "true",
         },
@@ -87,15 +88,14 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
 
   Future<Integracao?> _sendIntegracao(Integracao integracao) async {
     await Future.delayed(const Duration(seconds: 2));
-    var url = Uri.parse('$urlAPI/rh/cadastrar-integracao/1');
-    String token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI2MDEwODc3fQ.wZGwWbpXhDNfGD1Egx1bXfdGZ0IJNUaR9j9KjXiHXys";
+    var url = Uri.parse('$urlAPI/rh/cadastrar-integracao/${widget.id}');
+    String tkn = widget.token;
 
     try {
       final response = await http.post(
         url,
         headers: {
-          "Authorization": "Bearer $token",
+          "Authorization": "Bearer $tkn",
           "Content-Type": "application/json",
           "ngrok-skip-browser-warning": "true",
         },

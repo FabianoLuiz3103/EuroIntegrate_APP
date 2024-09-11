@@ -40,8 +40,7 @@ class MyApp extends StatelessWidget {
      Locale('pt', 'BR'), // Português do Brasil
 
   ],
-      home: const HomeAdminScreen(),
+      home: const Login(),
     );
   }
 }
-

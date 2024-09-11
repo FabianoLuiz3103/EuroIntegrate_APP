@@ -9,7 +9,8 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
 class ListagemIntegracao extends StatefulWidget {
-  const ListagemIntegracao({super.key});
+  final String token;
+  const ListagemIntegracao({super.key, required this.token});
 
   @override
   State<ListagemIntegracao> createState() => _ListagemIntegracaoState();
@@ -26,14 +27,13 @@ class _ListagemIntegracaoState extends State<ListagemIntegracao> {
   Future<List<Integracao>> _getIntegracoes() async{
      await Future.delayed(const Duration(seconds: 3));
     var url = Uri.parse('$urlAPI/rh/listar-integracoes');
-    String token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI2MDE4MTc3fQ.x8X2z7HTU7HW15nX9MZQKmuKE1w1i6oGaR-ZU7AAtYw";
+    String tkn = widget.token;
 
     try {
       final response = await http.get(
         url,
         headers: {
-          "Authorization": "Bearer $token",
+          "Authorization": "Bearer $tkn",
           "Content-Type": "application/json",
           "ngrok-skip-browser-warning": "true",
         },

@@ -14,17 +14,16 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 
 class HomeAdminScreen extends StatelessWidget {
-  const HomeAdminScreen({super.key});
+  final String token;
+  final int id;
+  const HomeAdminScreen({super.key, required this.token, required this.id});
 
 
   @override
   Widget build(BuildContext context) {
-    final id = 1;
     Future<DadosHome?> _getIntegracoes() async{
      await Future.delayed(const Duration(seconds: 3));
     var url = Uri.parse('$urlAPI/rh/tela-home-admin/$id');
-    String token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI2MDE4MTc3fQ.x8X2z7HTU7HW15nX9MZQKmuKE1w1i6oGaR-ZU7AAtYw";
 
     try {
       final response = await http.get(
@@ -52,22 +51,19 @@ class HomeAdminScreen extends StatelessWidget {
       body: FutureBuilder<DadosHome?>(
         future: _getIntegracoes(),
         builder: (context, snapshot){
-           if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return SizedBox(
-                                  width: 150,
-                                  child: Align(
-                                    alignment: Alignment.center,
-                                    child: progressSkin(20),
-                                  ),
-                                );
-                              } else if (snapshot.hasError) {
-                                return const Text(
-                                    'Erro ao carregar dados home');
-                              } else if (!snapshot.hasData ||
-                                  snapshot.data! == null) {
-                                return const Text('ERRO: N.E.');
-                              }
+           if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(
+          child: progressSkin(20), // Removendo SizedBox e Align desnecessários
+        );
+      } else if (snapshot.hasError) {
+        return const Center(
+          child: Text('Erro ao carregar dados home'),
+        );
+      } else if (!snapshot.hasData || snapshot.data! == null) {
+        return const Center(
+          child: Text('ERRO: N.E.'),
+        );
+      }
 
 
           return Padding(
@@ -78,9 +74,10 @@ class HomeAdminScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                  BannerAdmin(titulo: Text(
-                      "olá, ${snapshot.data!.nomeAdmin}".toUpperCase(),
+                      "Olá, ${snapshot.data!.nomeAdmin}",
                       style: const TextStyle(
                           fontSize: 22, fontWeight: FontWeight.w600),
+                          overflow: TextOverflow.ellipsis,
                     ),
                     icon: FontAwesomeIcons.house,
                     ),
@@ -103,14 +100,14 @@ class HomeAdminScreen extends StatelessWidget {
                       card: card(
                           iconLeft: const Icon(Icons.school, size: 40),
                           textLeft: const Text("FUNCIONÁRIOS TREINADOS     ",
-                              style: TextStyle(fontSize: 10, height: 2)),
+                              style: TextStyle(fontSize: 10, height: 2, fontWeight: FontWeight.bold)),
                           numberLeft: snapshot.data!.totalColaboradoresTreinados.toDouble(),
                           textRight:const Text("    DIAS DE TREINAMENTO",
-                              style: TextStyle(fontSize: 10, height: 2)),
+                              style: TextStyle(fontSize: 10, height: 2, fontWeight: FontWeight.bold)),
                           iconRight:const  Icon(Icons.calendar_month, size: 40),
                           numberRight: snapshot.data!.diasDeTreinamento.toDouble()),
                       largura: MediaQuery.of(context).size.height * 0.95,
-                      altura: MediaQuery.of(context).size.height * 0.20,
+                      altura: MediaQuery.of(context).size.height * 0.25,
                     )),
                 const SizedBox(height: 10),
                 CardGraficos(title: "QUANTIDADE DE ONBOARDINGS POR STATUS", subtitle: "TOTAL DE PROCESSOS: ${snapshot.data!.totalProcessos}",),
@@ -128,6 +125,7 @@ class HomeAdminScreen extends StatelessWidget {
                 ),
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  
                   children: [
                     LengendsBarra(
                       cor: Colors.red,

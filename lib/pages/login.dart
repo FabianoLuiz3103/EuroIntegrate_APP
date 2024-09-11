@@ -2,6 +2,7 @@ import 'package:eurointegrate_app/components/campo.dart';
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/components/main_screen.dart';
 import 'package:eurointegrate_app/components/progress.dart';
+import 'package:eurointegrate_app/pages/admin/main_screen_adm.dart';
 import 'package:eurointegrate_app/pages/home.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
@@ -58,7 +59,9 @@ setState(() {
         Map<String, dynamic> jsonResponse = jsonDecode(response.body);
         String token = jsonResponse["token"];
         int id = jsonResponse["idUser"];
-        Navigator.pushReplacement(
+        String papel = jsonResponse['papel'];
+        if(papel == "ROLE_CUSTOMER"){
+           Navigator.pushReplacement(
           context,
           MaterialPageRoute(
               builder: (context) => MainScreen(
@@ -66,6 +69,17 @@ setState(() {
                     id: id,
                   )),
         );
+        } else {
+           Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => MainScreenAdmin(
+                    token: token,
+                    id: id,
+                  )),
+        );
+        }
+       
       }
       if (response.statusCode == 401) {
         _mensagemErro = '${response.body}: email ou senha inválidos';
