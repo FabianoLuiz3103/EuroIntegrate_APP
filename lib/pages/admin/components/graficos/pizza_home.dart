@@ -1,15 +1,30 @@
+import 'dart:ffi';
+
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-class pizzaHome extends StatefulWidget {
+class PizzaHome extends StatefulWidget {
+  final int totalProcessos;
+  final int seusProcessos;
+
+PizzaHome({required this.totalProcessos, required this.seusProcessos});
   @override
-  _pizzaHomeState createState() => _pizzaHomeState();
+  _PizzaHomeState createState() => _PizzaHomeState();
 }
 
-class _pizzaHomeState extends State<pizzaHome> {
+class _PizzaHomeState extends State<PizzaHome> {
   int? touchedIndex;
+   late int processosRestantes;
+   late double porcentagemRestante;
 
+  @override
+  void initState() {
+    super.initState();
+    processosRestantes = widget.totalProcessos - widget.seusProcessos;
+    var porc = (processosRestantes/widget.totalProcessos)*100;
+    porcentagemRestante = double.parse(porc.toStringAsFixed(2));
+  }
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -41,8 +56,8 @@ class _pizzaHomeState extends State<pizzaHome> {
         const SizedBox(height: 40),
         if (touchedIndex != null && touchedIndex != -1)
           Text(
-            touchedIndex == 0 ? 'Outros processos' : 'Processos que você criou',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            touchedIndex == 0 ? 'Outros processos: $processosRestantes'.toUpperCase() : 'Processos que você criou: ${widget.seusProcessos}'.toUpperCase(),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
       ],
     );
@@ -52,8 +67,8 @@ class _pizzaHomeState extends State<pizzaHome> {
     return [
       PieChartSectionData(
         color: amareloEuro,
-        value: 20,
-        title: '20%',
+        value: processosRestantes.toDouble(),
+        title: '$porcentagemRestante%',
         radius: touchedIndex == 0 ? 60 : 50,
         titleStyle: TextStyle(
           fontSize: touchedIndex == 0 ? 18 : 16,
@@ -63,8 +78,8 @@ class _pizzaHomeState extends State<pizzaHome> {
       ),
       PieChartSectionData(
         color: azulEuro,
-        value: 33,
-        title: '33%',
+        value: widget.seusProcessos.toDouble(),
+        title: '${(100.0 - porcentagemRestante).toStringAsFixed(2)}%',
         radius: touchedIndex == 1 ? 60 : 50,
         titleStyle: TextStyle(
           fontSize: touchedIndex == 1 ? 18 : 16,

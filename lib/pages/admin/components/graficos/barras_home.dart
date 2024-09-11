@@ -4,6 +4,10 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 class BarrasHome extends StatelessWidget {
+  late final int qtdNaoIniciado;
+  late final int qtdAndamento;
+  late final int qtdFinalizado;
+  BarrasHome({required this.qtdNaoIniciado, required this.qtdAndamento, required this.qtdFinalizado});
   @override
   Widget build(BuildContext context) {
     return BarChart(
@@ -45,11 +49,11 @@ class BarrasHome extends StatelessWidget {
         ),
         barGroups: [
           BarChartGroupData(
-              x: 0, barRods: [BarChartRodData(toY: 20, color: Colors.red)]),
+              x: 0, barRods: [BarChartRodData(toY: qtdNaoIniciado.toDouble(), color: Colors.red)]),
           BarChartGroupData(
-              x: 1, barRods: [BarChartRodData(toY: 10, color: azulEuro)]),
+              x: 1, barRods: [BarChartRodData(toY: qtdAndamento.toDouble(), color: azulEuro)]),
           BarChartGroupData(
-              x: 2, barRods: [BarChartRodData(toY: 34, color: Colors.green)]),
+              x: 2, barRods: [BarChartRodData(toY: qtdFinalizado.toDouble(), color: Colors.green)]),
         ],
       ),
     );
