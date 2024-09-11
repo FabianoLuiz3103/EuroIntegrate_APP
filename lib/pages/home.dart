@@ -47,7 +47,7 @@ class _HomeState extends State<Home> {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception('Failed to load data');
+        return null;
       }
     } catch (e) {
       print("Erro na requisição: $e");

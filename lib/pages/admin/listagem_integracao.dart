@@ -1,10 +1,12 @@
+import 'dart:convert';
+
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/components/progress.dart';
 import 'package:eurointegrate_app/pages/admin/components/banner.dart';
-import 'package:eurointegrate_app/pages/admin/dashs_integracao.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 
 class ListagemIntegracao extends StatefulWidget {
   const ListagemIntegracao({super.key});
@@ -15,7 +17,39 @@ class ListagemIntegracao extends StatefulWidget {
 
 class _ListagemIntegracaoState extends State<ListagemIntegracao> {
   late Future<List<Integracao>>? _integracoes;
-  Status? _selectedStatus; // Pode ser null para mostrar todos os itens
+  Status? _selectedStatus;
+  int? _selectedId;
+  final id = 1;
+
+
+
+  Future<List<Integracao>> _getIntegracoes() async{
+     await Future.delayed(const Duration(seconds: 3));
+    var url = Uri.parse('$urlAPI/rh/listar-integracoes');
+    String token =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI2MDE4MTc3fQ.x8X2z7HTU7HW15nX9MZQKmuKE1w1i6oGaR-ZU7AAtYw";
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+      );
+      if (response.statusCode == 200) {
+        return parseIntegracao(utf8.decode(response.bodyBytes));
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print("Erro na requisição: $e");
+      return [];
+    }
+
+  }
+
 
   @override
   void initState() {
@@ -35,26 +69,48 @@ class _ListagemIntegracaoState extends State<ListagemIntegracao> {
             ),
             icon: (FontAwesomeIcons.listCheck),
           ),
-       
-          DropdownButton<Status?>(
-            value: _selectedStatus,
-            items: [
-             const DropdownMenuItem(
-                value: null,
-                child: Text('Todos'),
+          SizedBox(height: 30,),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              DropdownButton<int?>(
+                items: [
+                   const DropdownMenuItem(
+                    value: null,
+                    child: Text("Geral")),
+                     DropdownMenuItem(
+                      value: id,
+                      child: const Text("CRIADOS POR VOCÊ"))
+                ],
+                 onChanged: (int? clicado){
+                  setState(() {
+                    _selectedId = clicado;
+                  });
+                 }),
+
+
+
+              DropdownButton<Status?>(
+                value: _selectedStatus,
+                items: [
+                 const DropdownMenuItem(
+                    value: null,
+                    child: Text('Todos'),
+                  ),
+                  ...Status.values.map((status) {
+                    return DropdownMenuItem(
+                      value: status,
+                      child: Text(status.name),
+                    );
+                  }).toList(),
+                ],
+                onChanged: (Status? newStatus) {
+                  setState(() {
+                    _selectedStatus = newStatus;
+                  });
+                },
               ),
-              ...Status.values.map((status) {
-                return DropdownMenuItem(
-                  value: status,
-                  child: Text(status.name),
-                );
-              }).toList(),
             ],
-            onChanged: (Status? newStatus) {
-              setState(() {
-                _selectedStatus = newStatus;
-              });
-            },
           ),
           FutureBuilder<List<Integracao>>(
             future: _integracoes,
@@ -75,8 +131,25 @@ class _ListagemIntegracaoState extends State<ListagemIntegracao> {
               }
 
               List<Integracao> filteredIntegracoes = snapshot.data!
-                  .where((integracao) => _selectedStatus == null || integracao.status == _selectedStatus)
-                  .toList();
+    .where((integracao) => 
+        (_selectedStatus == null || integracao.status == _selectedStatus) &&
+        (_selectedId == null || integracao.rh.id == _selectedId))
+    .toList();
+
+     if (filteredIntegracoes.isEmpty) {
+      return Expanded(
+        child: Center(
+            child: Container(
+              color: Colors.red,
+              child: const Text(
+                'Nenhuma integração encontrada com os filtros aplicados.',
+                style: TextStyle(fontSize: 16, color: Colors.white,),
+              ),
+            ),
+        ),
+      );
+    }
+
 
               return Expanded(
                 child: Padding(
@@ -105,7 +178,7 @@ class _ListagemIntegracaoState extends State<ListagemIntegracao> {
                                   
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8.0),
-                                  child: Center(child: Text(filteredIntegracoes[index].departamento, style: const TextStyle(fontSize: 12, color: Colors.black54),),),
+                                  child: Center(child: Text(filteredIntegracoes[index].departamento.nome, style: const TextStyle(fontSize: 12, color: Colors.black54),),),
                                 ),
                                 
                               ],
@@ -113,7 +186,7 @@ class _ListagemIntegracaoState extends State<ListagemIntegracao> {
                             subtitle: Padding(
                               padding: const EdgeInsets.all(8),
                               child: Text(
-                                'Inicio: ${_formatData(filteredIntegracoes[index].dataInicio)}   -  ${_formatHora(filteredIntegracoes[index].horaInicio)}',
+                                'Inicio: ${_formatData(filteredIntegracoes[index].dataInicio)}   -  ${_formatTimeOfDay(filteredIntegracoes[index].horaInicio)}',
                               ),
                             ),
                             trailing: IconButton(
@@ -192,15 +265,15 @@ class IntegracaoDetails extends StatelessWidget {
       _buildDivider(),
       _buildTitle("DEPARTAMENTO"),
       _buildDivider(),
-      _buildText(integracao.departamento),
+      _buildText(integracao.departamento.nome),
       _buildDivider(),
       _buildTitle("INÍCIO"),
       _buildDivider(),
-      _buildRow(_formatData(integracao.dataInicio), _formatHora(integracao.horaInicio)),
+      _buildRow(_formatData(integracao.dataInicio), _formatTimeOfDay(integracao.horaInicio)),
       _buildDivider(),
       _buildTitle("FIM"),
       _buildDivider(),
-      _buildRow(_formatData(integracao.dataFim), _formatHora(integracao.horaFim)),
+      _buildRow(_formatData(integracao.dataFim), _formatTimeOfDay(integracao.horaFim)),
       _buildDivider(),
       _buildTitle("QUANTIDADE DE COLABORADORES"),
       _buildDivider(),
@@ -288,156 +361,90 @@ Widget _buildConditionalText({
     );
 
 
-Future<List<Integracao>> _getIntegracoes() async {
-  await Future.delayed(const Duration(seconds: 2));
-  return [
-    Integracao(
-      id:1,
-      dataInicio: DateTime(2024, 9, 2),
-      horaInicio: DateTime(2024, 9, 2, 13, 19),
-      dataFim: DateTime(2024, 9, 6),
-      horaFim: DateTime(2024, 9, 2, 17, 19),
-      status: Status.NAO_INICIADO,
-      departamento: 'MARKETING',
-      qtdColaboradores: 32,
-      mediaProgresso: 15.64,
-      mediaAcertos: 20.29,
-    ),
-    Integracao(
-      id:2,
-      dataInicio: DateTime(2024, 9, 4),
-      horaInicio: DateTime(2024, 9, 4, 10, 9),
-      dataFim: DateTime(2024, 9, 6),
-      horaFim: DateTime(2024, 9, 4, 14, 9),
-      status: Status.NAO_INICIADO,
-      departamento: 'MARKETING',
-      qtdColaboradores: 33,
-      mediaProgresso: 83.52,
-      mediaAcertos: 92.33,
-    ),
-    Integracao(
-      id:3,
-      dataInicio: DateTime(2024, 8, 26),
-      horaInicio: DateTime(2024, 8, 27, 5, 44),
-      dataFim: DateTime(2024, 8, 31),
-      horaFim: DateTime(2024, 8, 27, 6, 44),
-      status: Status.NAO_INICIADO,
-      departamento: 'RECURSOS HUMANOS (RH)',
-      qtdColaboradores: 8,
-      mediaProgresso: 64.05,
-      mediaAcertos: 34.36,
-    ),
-    Integracao(
-      id:4,
-      dataInicio: DateTime(2024, 8, 7),
-      horaInicio: DateTime(2024, 8, 7, 18, 5),
-      dataFim: DateTime(2024, 8, 12),
-      horaFim: DateTime(2024, 8, 7, 19, 5),
-      status: Status.ANDAMENTO,
-      departamento: 'RECURSOS HUMANOS (RH)',
-      qtdColaboradores: 40,
-      mediaProgresso: 45.8,
-      mediaAcertos: 16.87,
-    ),
-    Integracao(
-      id:5,
-      dataInicio: DateTime(2024, 8, 18),
-      horaInicio: DateTime(2024, 8, 18, 10, 49),
-      dataFim: DateTime(2024, 8, 23),
-      horaFim: DateTime(2024, 8, 18, 11, 49),
-      status: Status.ANDAMENTO,
-      departamento: 'TECNOLOGIA DA INFORMAÇÃO (TI)',
-      qtdColaboradores: 7,
-      mediaProgresso: 63.54,
-      mediaAcertos: 35.74,
-    ),
-    Integracao(
-      id:6,
-      dataInicio: DateTime(2024, 8, 23),
-      horaInicio: DateTime(2024, 8, 24, 3, 3),
-      dataFim: DateTime(2024, 8, 24),
-      horaFim: DateTime(2024, 8, 24, 5, 3),
-      status: Status.NAO_INICIADO,
-      departamento: 'RISCOS',
-      qtdColaboradores: 50,
-      mediaProgresso: 80.42,
-      mediaAcertos: 3.9,
-    ),
-    Integracao(
-      id:7,
-      dataInicio: DateTime(2024, 9, 2),
-      horaInicio: DateTime(2024, 9, 2, 17, 1),
-      dataFim: DateTime(2024, 9, 7),
-      horaFim: DateTime(2024, 9, 2, 20, 1),
-      status: Status.ANDAMENTO,
-      departamento: 'TECNOLOGIA DA INFORMAÇÃO (TI)',
-      qtdColaboradores: 44,
-      mediaProgresso: 91.01,
-      mediaAcertos: 95.62,
-    ),
-    Integracao(
-      id: 8,
-      dataInicio: DateTime(2024, 8, 10),
-      horaInicio: DateTime(2024, 8, 10, 22, 6),
-      dataFim: DateTime(2024, 8, 15),
-      horaFim: DateTime(2024, 8, 10, 23, 6),
-      status: Status.NAO_INICIADO,
-      departamento: 'MARKETING',
-      qtdColaboradores: 10,
-      mediaProgresso: 85.73,
-      mediaAcertos: 77.55,
-    ),
-    Integracao(
-      id:9,
-      dataInicio: DateTime(2024, 8, 30),
-      horaInicio: DateTime(2024, 8, 31, 0, 45),
-      dataFim: DateTime(2024, 8, 31),
-      horaFim: DateTime(2024, 8, 31, 4, 45),
-      status: Status.FINALIZADO,
-      departamento: 'FINANCEIRO',
-      qtdColaboradores: 5,
-      mediaProgresso: 86.29,
-      mediaAcertos: 22.1,
-    ),
-    Integracao(
-      id: 10,
-      dataInicio: DateTime(2024, 8, 30),
-      horaInicio: DateTime(2024, 8, 30, 6, 37),
-      dataFim: DateTime(2024, 8, 31),
-      horaFim: DateTime(2024, 8, 30, 8, 37),
-      status: Status.FINALIZADO,
-      departamento: 'TECNOLOGIA DA INFORMAÇÃO (TI)',
-      qtdColaboradores: 45,
-      mediaProgresso: 6.41,
-      mediaAcertos: 2.26,
-    ),
-  ];
+class Departamento {
+  int id;
+  String nome;
+
+  Departamento({required this.id, required this.nome});
+
+  factory Departamento.fromJson(Map<String, dynamic> json) {
+    return Departamento(
+      id: json['id'],
+      nome: json['nome'],
+    );
+  }
+
+}
+
+class Rh {
+  int id;
+  String email;
+
+  Rh({required this.id, required this.email});
+
+  factory Rh.fromJson(Map<String, dynamic> json) {
+    return Rh(
+      id: json['id'],
+      email: json['email'],
+    );
+  }
+
 }
 
 
+
 class Integracao {
-  int id;
+  int? id;
   DateTime dataInicio;
-  DateTime horaInicio;
+  TimeOfDay horaInicio;
   DateTime dataFim;
-  DateTime horaFim;
+  TimeOfDay horaFim;
   Status status;
-  String departamento;
-  int qtdColaboradores;
+  int? qtdColaboradores;
+  Departamento departamento;
   double mediaProgresso;
   double mediaAcertos;
+  Rh rh;
 
   Integracao(
-      {required this.id,
-        required this.dataInicio,
+      {this.id,
+      required this.dataInicio,
       required this.horaInicio,
       required this.dataFim,
       required this.horaFim,
       required this.status,
+      this.qtdColaboradores,
       required this.departamento,
-      required this.qtdColaboradores,
+      required this.mediaAcertos,
       required this.mediaProgresso,
-      required this.mediaAcertos});
+      required this.rh});
+
+  factory Integracao.fromJson(Map<String, dynamic> json) {
+    return Integracao(
+        id: json['id'],
+        dataInicio: DateFormat('yyyy-MM-dd').parse(json['dataInicio']),
+        horaInicio: _parseTimeOfDay(json['horaInicio']),
+        dataFim: DateFormat('yyyy-MM-dd').parse(json['dataFim']),
+        horaFim: _parseTimeOfDay(json['horaFim']),
+          status: StatusExtension.fromString(json['status']),
+        qtdColaboradores: json['qtdColaboradores'],
+        departamento: Departamento.fromJson(json['departamento']),
+        mediaAcertos: json['mediaAcertos'],
+        mediaProgresso: json['mediaProgresso'],
+        rh: Rh.fromJson(json['rh'])
+
+        );
+  }
+
+}
+
+extension StatusExtension on Status {
+  static Status fromString(String status) {
+    return Status.values.firstWhere(
+      (e) => e.toString().split('.').last == status,
+      orElse: () => throw Exception('Status not found'),
+    );
+  }
 }
 
 enum Status{
@@ -459,4 +466,24 @@ extension StatusColor on Status {
         return Colors.black;  // Cor padrão
     }
   }
+}
+
+
+String _formatTimeOfDay(TimeOfDay time) {
+  final now = DateTime.now();
+  final formattedTime = DateFormat('HH:mm')
+      .format(DateTime(now.year, now.month, now.day, time.hour, time.minute));
+  return formattedTime;
+}
+
+TimeOfDay _parseTimeOfDay(String time) {
+  final parts = time.split(':');
+  return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+}
+
+List<Integracao> parseIntegracao(String responseBody) {
+  final parsed = jsonDecode(responseBody).cast<Map<String, dynamic>>();
+  return parsed
+      .map<Integracao>((json) => Integracao.fromJson(json))
+      .toList();
 }

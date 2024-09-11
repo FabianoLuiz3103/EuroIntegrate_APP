@@ -47,7 +47,7 @@ class _CadastroColaboradoresScreenState
       if (response.statusCode == 200) {
         return parseColaboradores(utf8.decode(response.bodyBytes));
       } else {
-        throw Exception('Failed to load data');
+        return null;
       }
     } catch (e) {
       print("Erro na requisição: $e");

@@ -1,11 +1,12 @@
+import 'dart:convert';
+
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/components/progress.dart';
 import 'package:eurointegrate_app/pages/admin/components/banner.dart';
 import 'package:eurointegrate_app/pages/admin/components/rounded_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 class CadastroOnboardingScreen extends StatefulWidget {
@@ -24,9 +25,93 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
   final TextEditingController _horaFim = TextEditingController();
   TimeOfDay _selectedTime = TimeOfDay.now();
   String? selected;
-  late Future<List<Departamento>> _futureDepts;
+  late Future<List<Departamento>?> _futureDepts;
   bool salvo = false;
   bool isLoading = false;
+  Departamento? _departamentoSelecionado;
+  Integracao? resultado;
+  late Future<Integracao> loadIntegracao;
+
+  Future<bool> _salvar() async {
+    if (_departamentoSelecionado == null) {
+      return false;
+    }
+
+    final integracao = Integracao(
+      dataInicio: _toEuaDate(_dataInicio.text),
+      horaInicio: _parseTimeOfDay(_horaInicio.text),
+      dataFim: _toEuaDate(_dataFim.text),
+      horaFim: _parseTimeOfDay(_horaFim.text),
+      departamento: _departamentoSelecionado!,
+    );
+
+    resultado = await _sendIntegracao(integracao);
+    _fetchIntegracao();
+    print(resultado);
+    return resultado != null;
+  }
+
+  Future<Integracao?> _fetchIntegracao() async {
+    await Future.delayed(const Duration(seconds: 2));
+    if (resultado == null) {
+      return null;
+    }
+    return resultado!;
+  }
+
+  Future<List<Departamento>?> _getDpts() async {
+    await Future.delayed(const Duration(seconds: 2));
+    var url = Uri.parse('$urlAPI/rh/listar-departamentos');
+    String token =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI2MDEwODc3fQ.wZGwWbpXhDNfGD1Egx1bXfdGZ0IJNUaR9j9KjXiHXys";
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+      );
+      if (response.statusCode == 200) {
+        return parseDepartamento(utf8.decode(response.bodyBytes));
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Erro na requisição: $e");
+      return null;
+    }
+  }
+
+  Future<Integracao?> _sendIntegracao(Integracao integracao) async {
+    await Future.delayed(const Duration(seconds: 2));
+    var url = Uri.parse('$urlAPI/rh/cadastrar-integracao/1');
+    String token =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUEkgRXVyb0ludGVncmF0ZSIsInN1YiI6ImZhYWg3NzJAZ21haWwuY29tIiwiZXhwIjoxNzI2MDEwODc3fQ.wZGwWbpXhDNfGD1Egx1bXfdGZ0IJNUaR9j9KjXiHXys";
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+        body: jsonEncode(integracao.toJson()),
+      );
+      print(response.statusCode);
+      if (response.statusCode == 201) {
+        return parseIntegracao(utf8.decode(response.bodyBytes));
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Erro na requisição: $e");
+      return null;
+    }
+  }
 
   @override
   void initState() {
@@ -55,11 +140,16 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    const BannerAdmin(titulo:Text(
-                    "ONBOARDING",
-                    style: TextStyle(
-                        fontSize: 25, fontWeight: FontWeight.w600,), ),
-                  icon: FontAwesomeIcons.squarePlus,),
+                    const BannerAdmin(
+                      titulo: Text(
+                        "ONBOARDING",
+                        style: TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      icon: FontAwesomeIcons.squarePlus,
+                    ),
                     const SizedBox(
                       height: 40,
                     ),
@@ -70,12 +160,13 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
                           const Expanded(
                               child: Text(
                             "DEPARTAMENTO ",
-                            style: TextStyle(fontSize: 15, color: Color(0xFF757575)),
+                            style: TextStyle(
+                                fontSize: 15, color: Color(0xFF757575)),
                           )),
                           const SizedBox(
                             width: 45,
                           ),
-                          FutureBuilder<List<Departamento>>(
+                          FutureBuilder<List<Departamento>?>(
                             future: _futureDepts,
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
@@ -92,21 +183,20 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
                                     'Erro ao carregar departamentos');
                               } else if (!snapshot.hasData ||
                                   snapshot.data!.isEmpty) {
-                                return const Text(
-                                    'Nenhum departamento encontrado');
+                                return const Text('ERRO: N.E.');
                               }
                               return SizedBox(
                                 width:
                                     150, // Defina uma largura fixa ou ajustável
-                                child: DropdownButtonFormField<String>(
+                                child: DropdownButtonFormField<Departamento>(
                                   hint: Text(
                                     "SELECIONE",
                                     style: TextStyle(fontSize: 15),
                                   ),
-                                  value: selected,
+                                  value: _departamentoSelecionado,
                                   items: snapshot.data!.map((departamento) {
                                     return DropdownMenuItem(
-                                      value: departamento.id.toString(),
+                                      value: departamento,
                                       child: ConstrainedBox(
                                         constraints:
                                             BoxConstraints(maxWidth: 120),
@@ -121,9 +211,9 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
                                       ),
                                     );
                                   }).toList(),
-                                  onChanged: (String? selectedDepartamento) {
+                                  onChanged: (Departamento? selecionado) {
                                     setState(() {
-                                      selected = selectedDepartamento;
+                                      _departamentoSelecionado = selecionado;
                                     });
                                   },
                                   selectedItemBuilder: (BuildContext context) {
@@ -251,9 +341,8 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
                               _dataFim.clear();
                               _horaInicio.clear();
                               _horaFim.clear();
-                              selected = null;
+                              _departamentoSelecionado = null;
                             });
-                            
                           }
                           setState(() {
                             isLoading = false;
@@ -266,20 +355,18 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
               ),
             ),
             if (isLoading)
-              Container(
-                color: Colors.black54,
-                child: progressSkin(30),
+              Positioned.fill(
+                child: Container(
+                
+                  child: Center(
+                    child: progressSkin(50),
+                  ),
+                ),
               ),
           ],
         ),
       ),
     );
-  }
-
-  Future<bool> _salvar() async {
-    await Future.delayed(const Duration(seconds: 2));
-
-    return true;
   }
 
   Future _showConfirmacaoCadastroDetails() {
@@ -290,26 +377,132 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
             contentPadding: EdgeInsets.zero,
             content: SizedBox(
               width: 200,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Center(
-                    child: Row(
+              height: 400,
+              child: FutureBuilder<Integracao?>(
+                future: _fetchIntegracao(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return SizedBox(
+                      width: 150,
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: progressSkin(20),
+                      ),
+                    );
+                  } else if (snapshot.hasError) {
+                    return const Text('Erro ao carregar detalhes');
+                  } else if (!snapshot.hasData || snapshot.data! == null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('ERRO: Nenhum dado disponível.'),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                    });
+                    return const SizedBox(); // Retorne um widget vazio para o FutureBuilder
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(_dataInicio.text),
-                        Text(_horaInicio.text)
+                        Center(
+                          child: Text(
+                              'ONBOARDING: #${snapshot.data!.id.toString()}'),
+                        ),
+                        Divider(
+                          color: cinza,
+                        ),
+                        Center(
+                          child: Column(
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Center(child: Text("DEPARTAMENTO")),
+                              ),
+                              Text(snapshot.data!.departamento.nome
+                                  .toUpperCase()),
+                            ],
+                          ),
+                        ),
+                        Divider(
+                          color: cinza,
+                        ),
+                        Center(
+                          child: Column(
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Center(child: Text("INÍCIO")),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  Text(_toBrDate(snapshot.data!.dataInicio)),
+                                  Text(_formatTimeOfDay(
+                                      snapshot.data!.horaInicio)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Divider(
+                          color: cinza,
+                        ),
+                        Center(
+                          child: Column(
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Center(child: Text("FIM")),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  Text(_toBrDate(snapshot.data!.dataFim)),
+                                  Text(
+                                      _formatTimeOfDay(snapshot.data!.horaFim)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Divider(
+                          color: cinza,
+                        ),
+                        Center(
+                          child: Column(
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Center(child: Text("STATUS")),
+                              ),
+                              Text(snapshot.data!.status!),
+                            ],
+                          ),
+                        ),
+                        Divider(
+                          color: cinza,
+                        ),
+                        Center(
+                          child: Column(
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child:
+                                    Center(child: Text("QTD. COLABORADORES")),
+                              ),
+                              Text(snapshot.data!.qtdColaboradores.toString()),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                  Center(
-                    child: Row(
-                      children: [Text(_dataFim.text), Text(_horaFim.text)],
-                    ),
-                  ),
-                  const Center(
-                    child: Text("DEPARTAMENTO"),
-                  )
-                ],
+                  );
+                },
               ),
             ),
           );
@@ -393,13 +586,6 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
       });
     }
   }
-
-  String _formatTimeOfDay(TimeOfDay time) {
-    final now = DateTime.now();
-    final formattedTime = DateFormat('HH:mm')
-        .format(DateTime(now.year, now.month, now.day, time.hour, time.minute));
-    return formattedTime;
-  }
 }
 
 DateTime _toEuaDate(String data) {
@@ -443,20 +629,91 @@ Widget campoOnboarding(
   );
 }
 
+class Integracao {
+  int? id;
+  DateTime dataInicio;
+  TimeOfDay horaInicio;
+  DateTime dataFim;
+  TimeOfDay horaFim;
+  String? status;
+  int? qtdColaboradores;
+  Departamento departamento;
+
+  Integracao(
+      {this.id,
+      required this.dataInicio,
+      required this.horaInicio,
+      required this.dataFim,
+      required this.horaFim,
+      this.status,
+      this.qtdColaboradores,
+      required this.departamento});
+
+  factory Integracao.fromJson(Map<String, dynamic> json) {
+    return Integracao(
+        id: json['id'],
+        dataInicio: DateFormat('yyyy-MM-dd').parse(json['dataInicio']),
+        horaInicio: _parseTimeOfDay(json['horaInicio']),
+        dataFim: DateFormat('yyyy-MM-dd').parse(json['dataFim']),
+        horaFim: _parseTimeOfDay(json['horaFim']),
+        status: json['status'],
+        qtdColaboradores: json['qtdColaboradores'],
+        departamento: Departamento.fromJson(json['departamento']));
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'dataInicio': DateFormat('yyyy-MM-dd').format(dataInicio),
+      'horaInicio': _formatTimeOfDay(horaInicio),
+      'dataFim': DateFormat('yyyy-MM-dd').format(dataFim),
+      'horaFim': _formatTimeOfDay(horaFim),
+      'departamento': departamento.toJson()
+    };
+  }
+}
+
 class Departamento {
   int id;
   String nome;
 
   Departamento({required this.id, required this.nome});
+
+  factory Departamento.fromJson(Map<String, dynamic> json) {
+    return Departamento(
+      id: json['id'],
+      nome: json['nome'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'nome': nome,
+    };
+  }
 }
 
-Future<List<Departamento>> _getDpts() async {
-  await Future.delayed(const Duration(seconds: 1));
-  return [
-    Departamento(id: 1, nome: 'Tecnologia da informação (TI)'),
-    Departamento(id: 2, nome: 'Financeiro'),
-    Departamento(id: 3, nome: 'Marketing'),
-    Departamento(id: 4, nome: 'Recursos Humanos (RH)'),
-    Departamento(id: 5, nome: 'Riscos')
-  ];
+List<Departamento> parseDepartamento(String responseBody) {
+  final parsed = jsonDecode(responseBody).cast<Map<String, dynamic>>();
+  return parsed
+      .map<Departamento>((json) => Departamento.fromJson(json))
+      .toList();
+}
+
+Integracao parseIntegracao(String responseBody) {
+  final Map<String, dynamic> json = jsonDecode(responseBody);
+  return Integracao.fromJson(json);
+}
+
+String _formatTimeOfDay(TimeOfDay time) {
+  final now = DateTime.now();
+  final formattedTime = DateFormat('HH:mm')
+      .format(DateTime(now.year, now.month, now.day, time.hour, time.minute));
+  return formattedTime;
+}
+
+TimeOfDay _parseTimeOfDay(String time) {
+  final parts = time.split(':');
+  return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
 }
