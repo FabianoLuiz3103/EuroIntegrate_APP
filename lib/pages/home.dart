@@ -4,6 +4,7 @@ import 'package:eurointegrate_app/components/balao.dart';
 import 'package:eurointegrate_app/components/cards.dart';
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/components/cont.dart';
+import 'package:eurointegrate_app/pages/chatbot/bot.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -430,7 +431,7 @@ class _HomeState extends State<Home> {
                       fit: BoxFit.fill,
                     ),
                     onPressed: () {
-                      // Ação ao pressionar o botão
+                      _showMyDialog(context);
                     },
                   ),
                 ),
@@ -441,6 +442,27 @@ class _HomeState extends State<Home> {
       ),
     );
   }
+}
+
+
+
+ Future<void> _showMyDialog(BuildContext context) async {
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20.0), // Raio dos cantos arredondados
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.98, // 98% da largura da tela
+            height: MediaQuery.of(context).size.height * 0.85, // 85% da altura da tela
+            child: TelaBot(), // Seu widget de chatbot
+          ),
+        ),
+      );
+    },
+  );
 }
 
 

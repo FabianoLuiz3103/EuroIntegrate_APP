@@ -9,6 +9,7 @@ import 'package:eurointegrate_app/pages/admin/main_screen_adm.dart';
 import 'package:eurointegrate_app/pages/conquistas_screen.dart';
 import 'package:eurointegrate_app/pages/guia.dart';
 import 'package:eurointegrate_app/pages/login.dart';
+import 'package:eurointegrate_app/pages/tela_inicial.dart';
 import 'package:eurointegrate_app/pages/video_screen.dart';
 import 'package:eurointegrate_app/pages/admin/cadastro_colaboradores.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +41,7 @@ class MyApp extends StatelessWidget {
      Locale('pt', 'BR'), // Português do Brasil
 
   ],
-      home: const Login(),
+      home: SplashScreen(),
     );
   }
 }

@@ -10,3 +10,14 @@ Widget progressSkin(double tamanho){
                   ),
   );
 }
+
+
+
+Widget progressSkinIni(double tamanho){
+  return Center(
+    child: SpinKitThreeBounce(
+                    size: tamanho,
+                    color: Colors.white,
+                  ),
+  );
+}

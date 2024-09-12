@@ -115,10 +115,10 @@ setState(() {
                 children: [
                   
                   progressSkin(30),
-                  SizedBox(
+                  const SizedBox(
                     height: 5,
                   ),
-                  Text(
+                  const Text(
                     "Validando dados...",
                   )
                 ],
