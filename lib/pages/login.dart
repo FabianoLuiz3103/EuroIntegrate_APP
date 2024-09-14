@@ -106,14 +106,16 @@ setState(() {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _carregando
-          ?  Center(
+Widget build(BuildContext context) {
+  return Scaffold(
+    resizeToAvoidBottomInset: true, // Isso garante que o layout se ajuste ao teclado
+    body: _carregando
+        ? Padding(
+            padding: const EdgeInsets.all(18.0),
+            child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  
                   progressSkin(30),
                   const SizedBox(
                     height: 5,
@@ -123,10 +125,12 @@ setState(() {
                   )
                 ],
               ),
-            )
-          : Form(
-            key: _formKey,
-            child: Column(
+            ),
+          )
+        : SingleChildScrollView(  // Adiciona rolagem
+            child: Form(
+              key: _formKey,
+              child: Column(
                 children: [
                   Container(
                     width: double.infinity,
@@ -134,13 +138,12 @@ setState(() {
                     decoration: const BoxDecoration(
                       color: azulEuro,
                       borderRadius: BorderRadius.only(
-                        bottomLeft: medidaRaio, // Raio do canto inferior esquerdo
-                        bottomRight: medidaRaio, // Raio do canto inferior direito
+                        bottomLeft: medidaRaio,
+                        bottomRight: medidaRaio,
                       ),
                     ),
                     child: FractionallySizedBox(
-                      widthFactor:
-                          1.5, // Ajuste essa fração para aumentar ou diminuir o tamanho
+                      widthFactor: 1.5,
                       heightFactor: 1.5,
                       child: Image.asset(
                         "images/lg_branco.png",
@@ -159,41 +162,41 @@ setState(() {
                         height: 40.0,
                       ),
                       Padding(
-                          padding:
-                              const EdgeInsets.fromLTRB(60.0, 8.0, 60.0, 8.0),
-                          child: campoForm(
-                              controller: _email,
-                              keyboardType: TextInputType.emailAddress,
-                              obscureText: false,
-                              label: 'E-mail',
-                              erro: erro,
-                              isSenha: false, 
-                              validacao: (value){
-                                if(value == null || value.isEmpty){
-                                  return 'Por favor, insira seu e-mail';
-                                }
-                                return null;}
-                                )),
+                        padding: const EdgeInsets.fromLTRB(60.0, 8.0, 60.0, 8.0),
+                        child: campoForm(
+                          controller: _email,
+                          keyboardType: TextInputType.emailAddress,
+                          obscureText: false,
+                          label: 'E-mail',
+                          erro: erro,
+                          isSenha: false,
+                          validacao: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, insira seu e-mail';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
                       const SizedBox(height: 15.0),
                       Padding(
-                          padding:
-                              const EdgeInsets.fromLTRB(60.0, 8.0, 60.0, 8.0),
-                          child: campoForm(
-                              controller: _senha,
-                              obscureText: obscureText,
-                              label: 'Senha',
-                              erro: erro,
-                              mostrarSenha: mostrarSenha,
-                              isSenha: true,
-                              validacao: (value){
-                                if(value == null || value.isEmpty){
-                                  return 'Por favor, insira sua senha';
-                                }
-                                return null;}
-                              )),
-                      const SizedBox(
-                        height: 15.0,
+                        padding: const EdgeInsets.fromLTRB(60.0, 8.0, 60.0, 8.0),
+                        child: campoForm(
+                          controller: _senha,
+                          obscureText: obscureText,
+                          label: 'Senha',
+                          erro: erro,
+                          mostrarSenha: mostrarSenha,
+                          isSenha: true,
+                          validacao: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, insira sua senha';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
+                      const SizedBox(height: 15.0),
                       SizedBox(
                         width: 200,
                         height: 45,
@@ -209,9 +212,7 @@ setState(() {
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 15.0,
-                      ),
+                      const SizedBox(height: 15.0),
                       if (_mensagemErro != null)
                         Text(
                           _mensagemErro!,
@@ -221,7 +222,9 @@ setState(() {
                   ),
                 ],
               ),
+            ),
           ),
-    );
-  }
+  );
+}
+
 }
