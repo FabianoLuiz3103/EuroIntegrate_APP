@@ -40,7 +40,7 @@ class BarrasDash extends StatelessWidget {
                   fontSize: 14,
                 );
                 // Lista completa dos rótulos para os 12 meses
-                final titles = isMonth  ? ['','DET1', 'DET2', 'DET3', 'DEPT4', 'DEPT5', 'DEPT6']: [
+                final titles = isMonth  ? ['','TI', 'FINAN', 'MKT', 'JUR', 'RH', 'RIS']: [
                   'JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 
                   'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'
                 ];

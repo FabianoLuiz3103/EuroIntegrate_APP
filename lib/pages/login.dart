@@ -156,7 +156,7 @@ setState(() {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(
-                        height: 10.0,
+                        height: 40.0,
                       ),
                       Padding(
                           padding:

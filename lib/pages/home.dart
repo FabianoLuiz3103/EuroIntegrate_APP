@@ -4,12 +4,16 @@ import 'package:eurointegrate_app/components/balao.dart';
 import 'package:eurointegrate_app/components/cards.dart';
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/components/cont.dart';
+import 'package:eurointegrate_app/components/progress.dart';
 import 'package:eurointegrate_app/pages/chatbot/bot.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
+
+
 
 class Home extends StatefulWidget {
   final String token;
@@ -23,11 +27,13 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   late String _jwt;
   late int _id;
+   late Future<Map?> _futureData;
   @override
   void initState() {
     super.initState();
     _jwt = widget.token;
     _id = widget.id;
+    _futureData = _fetchData();
   }
 
   Future<Map?> _fetchData() async {
@@ -56,22 +62,26 @@ class _HomeState extends State<Home> {
     }
   }
 
+    void _retryFetchData() {
+    setState(() {
+      _futureData = _fetchData(); // Atualiza o futuro e força a reconstrução
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: FutureBuilder<Map?>(
-          future: _fetchData(),
+          future: _futureData,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
+              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(
-                      color: azulEuro,
-                    ),
-                    SizedBox(
+                    progressSkin(30),
+                    const SizedBox(
                       height: 5,
                     ),
                     Text(
@@ -81,7 +91,14 @@ class _HomeState extends State<Home> {
                 ),
               );
             } else if (snapshot.hasError) {
-              return Center(child: Text('Erro: ${snapshot.error}'));
+              return Center(child:
+              Column(
+                children: [
+                  Text("Erro ao carregar os dados..."),
+                  ElevatedButton(onPressed: _retryFetchData, child: Text("Tente novamente"), style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(azulEuro)),)
+                ],
+              )
+              );
             } else if (snapshot.hasData && snapshot.data != null) {
               Map? _dados = snapshot.data;
 
@@ -107,9 +124,8 @@ class _HomeState extends State<Home> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              const SizedBox(
-                                height: 50,
-                              ),
+                              SizedBox(
+                                height: 40,                              ),
                               SizedBox(
                                 child: AvatarMakerAvatar(
                                   backgroundColor: Colors.grey[200],
@@ -144,7 +160,7 @@ class _HomeState extends State<Home> {
                                   size: 40,
                                 ),
                                 textLeft: const Text("CONQUISTAS"),
-                                numberLeft: 1000.0,
+                                numberLeft: 5.0,
                                 iconRight: const Icon(
                                   Icons.star,
                                   color: Colors.yellow,
@@ -404,6 +420,9 @@ class _HomeState extends State<Home> {
                           altura: 180,
                           largura: double.infinity),
                     ),
+                    const SizedBox(
+                      height: 40,
+                    )
                   ],
                 ),
               );
@@ -446,15 +465,20 @@ class _HomeState extends State<Home> {
 
 
 
- Future<void> _showMyDialog(BuildContext context) async {
+Future<void> _showMyDialog(BuildContext context) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: false,
     builder: (BuildContext context) {
       return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30.0), // Define o raio dos cantos arredondados
+        ),
+        backgroundColor: Colors.transparent, // Deixa o fundo transparente
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(20.0), // Raio dos cantos arredondados
-          child: SizedBox(
+          borderRadius: BorderRadius.circular(30.0), // Mantém os cantos arredondados do conteúdo
+          child: Container(
+            color: Colors.white, // Define a cor de fundo do conteúdo
             width: MediaQuery.of(context).size.width * 0.98, // 98% da largura da tela
             height: MediaQuery.of(context).size.height * 0.85, // 85% da altura da tela
             child: TelaBot(), // Seu widget de chatbot

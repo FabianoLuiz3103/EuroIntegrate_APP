@@ -27,7 +27,7 @@ class _MainScreenAdminState extends State<MainScreenAdmin> {
       CadastroColaboradoresScreen(token: widget.token, id: widget.id),
       CadastroOnboardingScreen(token: widget.token, id: widget.id,),
       ListagemIntegracao(token: widget.token,),
-      DashsIntegracaoScreen(),
+      DashsIntegracaoScreen(token: widget.token,),
     ];
 
     return Scaffold(

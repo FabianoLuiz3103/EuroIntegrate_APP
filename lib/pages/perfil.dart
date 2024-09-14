@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import 'package:avatar_maker/avatar_maker.dart';
 import 'package:eurointegrate_app/components/consts.dart';
+import 'package:eurointegrate_app/components/progress.dart';
 import 'package:eurointegrate_app/pages/editar_avatar.dart';
 import 'package:eurointegrate_app/pages/editar_telefone.dart';
+import 'package:eurointegrate_app/pages/login.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -59,7 +61,7 @@ class _PerfilState extends State<Perfil> {
         backgroundColor: azulEuro,
       ),
       body: userData == null
-          ? Center(child: CircularProgressIndicator())
+          ? Center(child:  progressSkin(30),)
           : ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
@@ -155,7 +157,31 @@ class _PerfilState extends State<Perfil> {
                 CardPerfil(icon: Icons.badge_outlined, title: "Matrícula", subtitle: "${userData?['matricula']}"),
               
                 const Divider(),
-                CardPerfil(icon: Icons.power_settings_new, title: "Sair", subtitle: ""),
+                
+                Row(
+      children: [
+        const Icon(Icons.power_settings_new),
+        const SizedBox(width: 16), // Espaçamento entre ícone e texto
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Sair"),
+            
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: () {
+             Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const Login()),
+                        );
+          },
+          icon: Icon(Icons.arrow_forward_ios),
+        ),
+      ],
+    ),
               ],
             ),
     );

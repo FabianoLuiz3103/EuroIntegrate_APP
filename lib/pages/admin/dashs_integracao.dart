@@ -1,23 +1,28 @@
+import 'dart:convert';
+
 import 'package:eurointegrate_app/components/consts.dart';
+import 'package:eurointegrate_app/components/progress.dart';
 import 'package:eurointegrate_app/pages/admin/components/banner.dart';
 import 'package:eurointegrate_app/pages/admin/components/card_graficos.dart';
 import 'package:eurointegrate_app/pages/admin/components/graficos/barras_dash.dart';
-import 'package:eurointegrate_app/pages/admin/components/graficos/item_legenda.dart';
 import 'package:eurointegrate_app/pages/admin/components/graficos/linear_dash.dart';
 import 'package:eurointegrate_app/pages/admin/components/graficos/pie_dash.dart';
 import 'package:eurointegrate_app/pages/admin/components/graficos/pie_dash_dois.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:http/http.dart' as http;
 
 class DashsIntegracaoScreen extends StatefulWidget {
-  const DashsIntegracaoScreen({super.key});
+ final String token;
+  const DashsIntegracaoScreen({super.key, required this.token});
 
   @override
   State<DashsIntegracaoScreen> createState() => _DashsIntegracaoScreenState();
 }
 
 class _DashsIntegracaoScreenState extends State<DashsIntegracaoScreen> {
+  bool _isLoading = true;
   String selectedYearUm = '2024'; // Ano padrão selecionado
   String selectedYearDois = '2024'; // Ano padrão selecionado
   String selectedYearTres = '2024'; // Ano padrão selecionado
@@ -25,66 +30,106 @@ class _DashsIntegracaoScreenState extends State<DashsIntegracaoScreen> {
   String selectedYearCinco = '2024';
   final List<String> years = ['2022', '2023', '2024']; // Anos disponíveis
 
-  // Dados simulados por ano
-  final Map<String, List<FlSpot>> dataByYear = {
-    '2022': [
-      FlSpot(0, 5),
-      FlSpot(1, 3),
-      FlSpot(2, 8),
-      FlSpot(3, 2),
-      FlSpot(4, 5),
-      FlSpot(5, 6),
-      FlSpot(6, 3),
-      FlSpot(7, 9),
-      FlSpot(8, 4),
-      FlSpot(9, 6),
-    ],
-    '2023': [
-      FlSpot(0, 3),
-      FlSpot(1, 1),
-      FlSpot(2, 4),
-      FlSpot(3, 3),
-      FlSpot(4, 7),
-      FlSpot(5, 8),
-      FlSpot(6, 5),
-      FlSpot(7, 18),
-      FlSpot(8, 9),
-      FlSpot(9, 7),
-    ],
-    '2024': [
-      FlSpot(0, 7),
-      FlSpot(1, 4),
-      FlSpot(2, 6),
-      FlSpot(3, 9),
-      FlSpot(4, 8),
-      FlSpot(5, 2),
-      FlSpot(6, 10),
-      FlSpot(7, 7),
-      FlSpot(8, 5),
-      FlSpot(9, 8),
-    ],
-  };
+  Map<String, List<int>> mapAnosIdades = {};
+Map<String, List<int>> mapAnosRespondidas = {};
+Map<String, List<int>> mapAnosCertas = {};
+Map<String, Map<String, double>> mapProgressoMes = {};
+Map<String, Map<String, double>> mapAcertosMes = {};
+Map<String, List<FlSpot>> dataByYear = {};
 
-    String? getFirstMonthWithData() {
-  final monthData = barDataByYearAndMonthAndDept[selectedYearBarra];
-  
-  if (monthData != null) {
-    for (String month in months) {
-      if (monthData[month]?.isNotEmpty ?? false) {
-        return month;
+
+
+
+  Future<void> _getDadosDash() async{
+    await Future.delayed(const Duration(seconds: 3));
+    var url = Uri.parse('$urlAPI/rh/dash');
+    String tkn = widget.token;
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer $tkn",
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        parseJsonData(utf8.decode(response.bodyBytes));
+      } else {
+   
+      }
+    } catch (e) {
+      print("Erro na requisição: $e");
+
+    } finally {
+      setState(() {
+        _isLoading = false; // Atualizar o estado para indicar que o carregamento foi concluído
+      });
+    }
+
+  }
+
+ void parseJsonData(String jsonString) {
+    final jsonData = json.decode(jsonString) as List<dynamic>;
+
+    // Limpa os mapas antes de adicionar novos dados
+    mapAnosIdades.clear();
+    mapAnosRespondidas.clear();
+    mapAnosCertas.clear();
+    mapProgressoMes.clear();
+    mapAcertosMes.clear();
+
+    // Mapeamento dos meses para índices
+    final monthIndex = {
+      'JANUARY': 0,
+      'FEBRUARY': 1,
+      'MARCH': 2,
+      'APRIL': 3,
+      'MAY': 4,
+      'JUNE': 5,
+      'JULY': 6,
+      'AUGUST': 7,
+      'SEPTEMBER': 8,
+      'OCTOBER': 9,
+      'NOVEMBER': 10,
+      'DECEMBER': 11,
+    };
+
+    for (var item in jsonData) {
+      final anos = (item['anosIntegracao'] as List<dynamic>)
+          .map((e) => e.toString())
+          .toList();
+      final idades = (item['idades'] as List<dynamic>).map((e) => e as int).toList();
+      final respondidas = (item['respondidas'] as List<dynamic>).map((e) => e as int).toList();
+      final certas = (item['certas'] as List<dynamic>).map((e) => e as int).toList();
+      final progresso = item['mediaPorgresso'] as Map<String, dynamic>;
+      final acertos = item['mediaAcertos'] as Map<String, dynamic>;
+
+      // Converta `quantidadeProcessos` para o formato desejado
+      final quantidadeProcessos = item['quantidadeProcessos'] as Map<String, dynamic>;
+      for (var ano in anos) {
+        // Adiciona idades, respondidas e certas aos mapas
+        mapAnosIdades[ano] = idades;
+        mapAnosRespondidas[ano] = respondidas;
+        mapAnosCertas[ano] = certas;
+        mapProgressoMes[ano] = progresso.map((k, v) => MapEntry(k, v.toDouble()));
+        mapAcertosMes[ano] = acertos.map((k, v) => MapEntry(k, v.toDouble()));
+
+        // Converta `quantidadeProcessos` para `FlSpot`
+        dataByYear[ano] = monthIndex.entries.map((entry) {
+          final month = entry.key;
+          final index = entry.value.toDouble();
+          final value = (quantidadeProcessos[month] as int?) ?? 0;
+          return FlSpot(index, value.toDouble());
+        }).toList();
       }
     }
-  }
-  return null;
-}
 
-List<String> getAvailableMonths() {
-  final monthData = barDataByYearAndMonthAndDept[selectedYearBarra];
-  if (monthData != null) {
-    return months.where((month) => monthData[month]?.isNotEmpty ?? false).toList();
   }
-  return [];
-}
+
+
 
   // Variáveis para o Dropdown de ano e mês
   String selectedYearBarra = '2024'; // Ano padrão para o gráfico de barras
@@ -92,7 +137,7 @@ List<String> getAvailableMonths() {
   @override
 void initState() {
   super.initState();
-  selectedMonth = getFirstMonthWithData();
+  _getDadosDash();
 }
 
 
@@ -111,95 +156,6 @@ void initState() {
     'Dez'
   ]; // Meses disponíveis
 
-  // Dados simulados por ano e mês e departamento
-  final Map<String, Map<String, Map<String, List<FlSpot>>>> barDataByYearAndMonthAndDept = {
-    '2022': {
-      'Jan': {
-        'DEPT1': [FlSpot(0, 5)],
-        'DEPT2': [FlSpot(1, 2)],
-        'DEPT3': [FlSpot(2, 6)],
-        'DEPT4': [FlSpot(3, 8)],
-        'DEPT5': [FlSpot(4, 5)],
-        'DEPT6': [FlSpot(5, 3)],
-      },
-    },
-    '2023': {
-      'Jun': {
-        'DEPT1': [FlSpot(0, 6)],
-        'DEPT2': [FlSpot(1, 3)],
-        'DEPT3': [FlSpot(2, 7)],
-        'DEPT4': [FlSpot(3, 8)],
-        'DEPT5': [FlSpot(4, 6)],
-        'DEPT6': [FlSpot(5, 4)],
-      },
-      'Jul': {
-        'DEPT1': [FlSpot(0, 7)],
-        'DEPT2': [FlSpot(1, 4)],
-        'DEPT3': [FlSpot(2, 8)],
-        'DEPT4': [FlSpot(3, 9)],
-        'DEPT5': [FlSpot(4, 7)],
-        'DEPT6': [FlSpot(5, 5)],
-      },
-    },
-    '2024': {
-      'Jan': {
-        'DEPT1': [FlSpot(0, 8)],
-        'DEPT2': [FlSpot(1, 5)],
-        'DEPT3': [FlSpot(2, 9)],
-        'DEPT4': [FlSpot(3, 10)],
-        'DEPT5': [FlSpot(4, 8)],
-        'DEPT6': [FlSpot(5, 6)],
-      },
-      'Fev': {
-        'DEPT1': [FlSpot(0, 9)],
-        'DEPT2': [FlSpot(1, 6)],
-        'DEPT3': [FlSpot(2, 10)],
-        'DEPT4': [FlSpot(3, 11)],
-        'DEPT5': [FlSpot(4, 9)],
-        'DEPT6': [FlSpot(5, 7)],
-      },
-    },
-  };
-
- List<FlSpot> getBarFilteredDataDept() {
-  if (selectedMonth != null) {
-    final Map<String, List<FlSpot>>? monthData =
-        barDataByYearAndMonthAndDept[selectedYearBarra]?[selectedMonth!];
-    
-    if (monthData != null && monthData.isNotEmpty) {
-      bool allMonthsEmpty = monthData.entries.every((entry) => entry.value.isEmpty);
-
-      if (allMonthsEmpty) {
-        return [];
-      } else {
-        return monthData.entries.map((entry) {
-          // Considerando que 'DEPT1', 'DEPT2', ... são representações que mapeamos para os índices 0, 1, 2, ...
-          return FlSpot(
-            double.parse(entry.key.replaceAll('DEPT', '')),
-            entry.value.first.y,
-          );
-        }).toList();
-      }
-    }
-  }
-  // Retorna uma lista vazia quando não há dados para o mês selecionado
-  return [];
-}
-
-bool get areAllMonthsEmpty {
-  if (selectedYearBarra != null) {
-    final monthData = barDataByYearAndMonthAndDept[selectedYearBarra];
-    
-    if (monthData != null) {
-      return months.every((month) {
-        final dataForMonth = monthData[month];
-        return dataForMonth == null || dataForMonth.isEmpty;
-      });
-    }
-  }
-  return true; // Retorna true se não houver dados para o ano selecionado
-}
-
 
   List<FlSpot> getBarFilteredDataByYear() {
     // Recupera os dados apenas para o ano selecionado
@@ -216,6 +172,14 @@ bool get areAllMonthsEmpty {
 
   @override
   Widget build(BuildContext context) {
+     if (_isLoading) {
+      // Exibe um indicador de carregamento enquanto os dados estão sendo carregados
+      return Scaffold(
+        body: Center(
+          child: progressSkin(20),
+        ),
+      );
+    }
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(0.0),
@@ -231,8 +195,8 @@ bool get areAllMonthsEmpty {
               ),
               const SizedBox(height: 30),
               const CardGraficos(
-                title: "ONBOARDINGS CRIADOS",
-                subtitle: "TOTAL DE PROCESSOS: XXX",
+                title: "FAIXA ETÁRIA ",
+                //subtitle: "TOTAL DE PROCESSOS: XXX",
               ),
               const SizedBox(
                 height: 30,
@@ -271,15 +235,15 @@ bool get areAllMonthsEmpty {
                 padding: const EdgeInsets.all(24.0),
                 child: SizedBox(
                   height: 200,
-                  child: PieDash(selectedYear: selectedYearQuatro), // Passando o ano selecionado para o gráfico de pizza
+                  child: PieDash(idades: mapAnosIdades, selectedYear: selectedYearQuatro), // Passando o ano selecionado para o gráfico de pizza
                 ),
               ),
               const SizedBox(
                 height: 30,
               ),
               const CardGraficos(
-                title: "ONBOARDINGS CRIADOS",
-                subtitle: "TOTAL DE PROCESSOS: XXX",
+                title: "PERGUNTAS RESPONDIDAS",
+                //subtitle: "TOTAL DE PROCESSOS: XXX",
               ),
               const SizedBox(
                 height: 40,
@@ -317,7 +281,7 @@ bool get areAllMonthsEmpty {
                 padding: const EdgeInsets.all(24.0),
                 child: SizedBox(
                   height: 200,
-                  child: PieDashDois(selectedYear: selectedYearCinco,),
+                 child: PieDashDois(anosRespondidas: mapAnosRespondidas, anosCertas: mapAnosCertas,  selectedYear: selectedYearCinco,),
                 ),
               ),
               const SizedBox(
@@ -325,7 +289,7 @@ bool get areAllMonthsEmpty {
               ),
               const CardGraficos(
                 title: "MÉDIA PROGRESSO/MÊS",
-                subtitle: "TOTAL DE PROCESSOS: XXX",
+                //subtitle: "TOTAL DE PROCESSOS: XXX",
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -361,7 +325,8 @@ bool get areAllMonthsEmpty {
                 child: SizedBox(
                   height: 400,
                   child: LinearDash(
-                    data: dataByYear[selectedYearUm]!,
+                     selectedYear: selectedYearUm,
+                     progressoMes: mapProgressoMes,
                      msgEmpty: dataByYear[selectedYearUm]!.isEmpty,
                      cor: azulEuro
                   ),
@@ -377,7 +342,7 @@ bool get areAllMonthsEmpty {
            
               const CardGraficos(
                 title: "MÉDIA PROGRESSO/MÊS",
-                subtitle: "TOTAL DE PROCESSOS: XXX",
+               // subtitle: "TOTAL DE PROCESSOS: XXX",
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -413,97 +378,21 @@ bool get areAllMonthsEmpty {
                 child: SizedBox(
                   height: 400,
                   child: LinearDash(
-                    data: dataByYear[selectedYearDois]!,
-                    msgEmpty: dataByYear[selectedYearDois]!.isEmpty,
-                    cor: Colors.orange
+                     selectedYear: selectedYearDois,
+                     progressoMes: mapAcertosMes,
+                     msgEmpty: dataByYear[selectedYearUm]!.isEmpty,
+                     cor: Colors.orange
                   ),
                 ),
               ),
           
 
-              const CardGraficos(
-                title: "PROCESSOS POR DEPT",
-                subtitle: "TOTAL DE PROCESSOS: XXX",
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Filtrar Barra por Ano:",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    DropdownButton<String>(
-                      value: selectedYearBarra,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedYearBarra = newValue!;
-                          selectedMonth = getFirstMonthWithData();
-                        });
-                      },
-                      items: years.map((String year) {
-                        return DropdownMenuItem<String>(
-                          value: year,
-                          child: Text(year),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Filtrar por Mês:",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    DropdownButton<String?>(
-                      value: selectedMonth,
-                      hint: const Text("Selecione o mês"),
-                       onChanged: areAllMonthsEmpty ? null : (String? newValue) {
-                        setState(() {
-                          selectedMonth = newValue;
-                        });
-                      },
-                      items: months.map((String month) {
-                      final isEnabled = getAvailableMonths().contains(month);
-                      return DropdownMenuItem<String?>(
-                        value: isEnabled ? month : null,
-                        enabled: isEnabled,
-                        child: Text(month),
-                      );
-                    }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: 30,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: SizedBox(
-                  height: 400,
-                  child: BarrasDash(
-                    data: getBarFilteredDataDept(),
-                    isMonth: true,
-                    showNoDataMessage: getBarFilteredDataDept().isEmpty,
-                    yearEmpty: areAllMonthsEmpty,
-                    cor: Colors.blue,
-                  ),
-                ),
-              ),
               const SizedBox(
                 height: 30,
               ),
               const CardGraficos(
                 title: "PROCESSOS MES",
-                subtitle: "TOTAL DE PROCESSOS: XXX",
+                //subtitle: "TOTAL DE PROCESSOS: XXX",
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -556,3 +445,10 @@ bool get areAllMonthsEmpty {
     );
   }
 }
+
+
+
+
+
+
+

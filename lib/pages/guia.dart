@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:eurointegrate_app/components/botton_navigation.dart';
 import 'package:eurointegrate_app/components/consts.dart';
+import 'package:eurointegrate_app/components/progress.dart';
 import 'package:eurointegrate_app/model/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -330,7 +331,7 @@ void verificarMudanca() {
   future: _fetchPerguntas,
   builder: (context, snapshot) {
     if (snapshot.connectionState == ConnectionState.waiting) {
-      return Center(child: CircularProgressIndicator());
+      return Center(child:  progressSkin(30),);
     } else if (snapshot.hasError) {
       return Center(child: Text('Erro ao carregar dados: ${snapshot.error}'));
     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -396,6 +397,8 @@ void verificarMudanca() {
         // SizedBox(height: 12),
         Expanded(
           child: Container(
+            width: MediaQuery.of(context).size.width * 0.90,
+
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16.0),
               color: cinza,
@@ -426,6 +429,7 @@ void verificarMudanca() {
         SizedBox(height: 12),
         Expanded(
           child: Container(
+            width: MediaQuery.of(context).size.width * 0.90,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16.0),
               color: cinza,

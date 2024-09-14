@@ -4,9 +4,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 class PieDash extends StatefulWidget {
+  final Map<String, List<int>> idades;
   final String selectedYear;
 
-  const PieDash({required this.selectedYear, Key? key}) : super(key: key);
+  const PieDash({required this.idades, required this.selectedYear, Key? key})
+      : super(key: key);
 
   @override
   _PieDashState createState() => _PieDashState();
@@ -15,73 +17,58 @@ class PieDash extends StatefulWidget {
 class _PieDashState extends State<PieDash> {
   int? touchedIndex;
 
-  // Dados simulados para o gráfico de pizza por ano
-  final Map<String, List<PieChartSectionData>> pieDataByYear = {
-    '2024': [
-      PieChartSectionData(
-        color: Colors.pink,
-        value: 20,
-        title: '20%',
-        radius: 90,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-      PieChartSectionData(
-        color: azulEuro,
-        value: 33,
-        title: '33%',
-        radius: 90,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-      PieChartSectionData(
-        color: Colors.lightGreen,
-        value: 33,
-        title: '33%',
-        radius: 90,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-      PieChartSectionData(
-        color: Colors.lightBlue,
-        value: 33,
-        title: '33%',
-        radius: 90,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-      PieChartSectionData(
-        color: Colors.deepPurple,
-        value: 33,
-        title: '33%',
-        radius: 90,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-    ],
-    '2022': [
-      PieChartSectionData(
-        color: Colors.redAccent,
-        value: 25,
-        title: '25%',
-        radius: 90,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-    ],
-    // '2023': [
-    //   PieChartSectionData(
-    //     color: Colors.green,
-    //     value: 50,
-    //     title: '50%',
-    //     radius: 90,
-    //     titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-    //   ),
-    // ],
-  };
+  // Definir faixas etárias com cores fixas
+  final List<Map<String, dynamic>> faixasEtarias = [
+    {'faixa': '18-25', 'min': 18, 'max': 25, 'color': Colors.pink},
+    {'faixa': '26-30', 'min': 26, 'max': 30, 'color': azulEuro},
+    {'faixa': '31-40', 'min': 31, 'max': 40, 'color': Colors.lightGreen},
+    {'faixa': '41-50', 'min': 41, 'max': 50, 'color': Colors.lightBlue},
+    {'faixa': '51+', 'min': 51, 'max': null, 'color': Colors.deepPurple},
+  ];
+
+  // Mapeia cores para as faixas etárias
+  Map<Color, String> legendaPorCor = {};
+  List<PieChartSectionData> sections = [];
 
   @override
   Widget build(BuildContext context) {
-    final sections = pieDataByYear[widget.selectedYear] ?? [];
+    // Obter idades para o ano selecionado
+    final idadesAno = widget.idades[widget.selectedYear] ?? [];
+
+    // Contar quantas pessoas estão em cada faixa etária
+    sections.clear();
+    legendaPorCor.clear(); // Limpar o mapa de legendas
+
+    for (var faixa in faixasEtarias) {
+      final int count = idadesAno
+          .where((idade) =>
+              idade >= faixa['min'] && (faixa['max'] == null || idade <= faixa['max']))
+          .length;
+
+      // Apenas adiciona faixas que têm pessoas
+      if (count > 0) {
+        final Color color = faixa['color'];
+        legendaPorCor[color] = faixa['faixa']; // Mapeia cor para faixa etária
+
+        sections.add(
+          PieChartSectionData(
+            color: color,
+            value: count.toDouble(),
+            title: '${count}', // Exibe a quantidade
+            radius: touchedIndex != null && touchedIndex == sections.length ? 110 : 90, // Aumenta o raio ao clicar
+            titleStyle: const TextStyle(
+                fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+        );
+      }
+    }
+
     if (sections.isEmpty) {
       return const Center(
         child: Text(
           'Sem dados para o ano selecionado',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
+          style: TextStyle(
+              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
         ),
       );
     }
@@ -93,13 +80,15 @@ class _PieDashState extends State<PieDash> {
             PieChartData(
               borderData: FlBorderData(show: false),
               sectionsSpace: 2,
-              centerSpaceRadius: 0,
-              sections: showingSections(sections), // Chama a função para mostrar as seções com animação
+              centerSpaceRadius: 2, // Pequeno espaço no centro
+              sections: sections,
               pieTouchData: PieTouchData(
                 touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                  if (event is FlTapUpEvent && pieTouchResponse?.touchedSection != null) {
-                    _updateTouchedIndex(pieTouchResponse!.touchedSection!.touchedSectionIndex);
-                  } else if (event is FlLongPressEnd || event is FlPanEndEvent) {
+                  if (pieTouchResponse != null &&
+                      pieTouchResponse.touchedSection != null) {
+                    _updateTouchedIndex(
+                        pieTouchResponse.touchedSection!.touchedSectionIndex);
+                  } else {
                     _updateTouchedIndex(null);
                   }
                 },
@@ -108,63 +97,27 @@ class _PieDashState extends State<PieDash> {
           ),
         ),
         const SizedBox(height: 60),
-        if (touchedIndex != null) Center(child: _mostrarLegenda(touchedIndex!)),
+        if (touchedIndex != null && touchedIndex! >= 0 && touchedIndex! < sections.length)
+          Center(child: _mostrarLegenda(touchedIndex!, sections)),
       ],
     );
   }
 
   void _updateTouchedIndex(int? newIndex) {
-    if (newIndex != touchedIndex) {
-      setState(() {
-        touchedIndex = newIndex;
-      });
-    }
+    setState(() {
+      touchedIndex = newIndex;
+    });
   }
 
-  List<PieChartSectionData> showingSections(List<PieChartSectionData> sections) {
-    // Retorna as seções com o aumento de raio para a seção tocada
-    return sections.asMap().map((index, section) {
-      final isTouched = index == touchedIndex;
-      final double radius = isTouched ? 120 : 90; // Aumenta o raio para 120 se a seção estiver tocada
-      final updatedSection = section.copyWith(radius: radius); // Atualiza a seção com o novo raio
-      return MapEntry(index, updatedSection);
-    }).values.toList();
-  }
+  // Ajustar legenda com base na cor
+  Widget _mostrarLegenda(int index, List<PieChartSectionData> sections) {
+    final Color sectionColor = sections[index].color;
+    final String faixaEtaria = legendaPorCor[sectionColor] ?? '';
 
-  Widget _mostrarLegenda(int index) {
-    switch (index) {
-      case 0:
-        return ItemLegenda(
-          cor: Colors.pink,
-          legenda: 'Maior que 18; Menor ou igual a 25'.toUpperCase(),
-          pie: true,
-        );
-      case 1:
-        return ItemLegenda(
-          cor: azulEuro,
-          legenda: 'Maior que 25; Menor ou igual a 30'.toUpperCase(),
-          pie: true,
-        );
-      case 2:
-        return ItemLegenda(
-          cor: Colors.lightGreen,
-          legenda: 'Maior que 30; Menor ou igual a 40'.toUpperCase(),
-          pie: true,
-        );
-      case 3:
-        return ItemLegenda(
-          cor: Colors.lightBlue,
-          legenda: 'Maior que 40; Menor ou igual a 50'.toUpperCase(),
-          pie: true,
-        );
-      case 4:
-        return ItemLegenda(
-          cor: Colors.deepPurple,
-          legenda: 'Maior que 50'.toUpperCase(),
-          pie: true,
-        );
-      default:
-        return const ItemLegenda(cor: Color.fromARGB(0, 255, 255, 255), legenda: "");
-    }
+    return ItemLegenda(
+      cor: sectionColor,
+      legenda: 'Faixa etária: $faixaEtaria'.toUpperCase(),
+      pie: true,
+    );
   }
 }

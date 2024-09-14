@@ -3,9 +3,16 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 class PieDashDois extends StatefulWidget {
-  final String selectedYear; // Adiciona o parâmetro para o ano selecionado
+  final Map<String, List<int>> anosRespondidas;
+  final Map<String, List<int>> anosCertas;
+  final String selectedYear;
 
-  const PieDashDois({required this.selectedYear, Key? key}) : super(key: key);
+  const PieDashDois({
+    required this.anosRespondidas,
+    required this.anosCertas,
+    required this.selectedYear,
+    Key? key,
+  }) : super(key: key);
 
   @override
   _PieDashDoisState createState() => _PieDashDoisState();
@@ -13,70 +20,44 @@ class PieDashDois extends StatefulWidget {
 
 class _PieDashDoisState extends State<PieDashDois> {
   int? touchedIndex;
-
-  // Dados simulados para o gráfico de pizza por ano
-  final Map<String, List<PieChartSectionData>> pieDataByYear = {
-    '2022': [
-      PieChartSectionData(
-        color: Colors.green.shade800,
-        value: 40,
-        title: '40%',
-        radius: 50,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-      PieChartSectionData(
-        color: Colors.red.shade800,
-        value: 60,
-        title: '60%',
-        radius: 50,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-    ],
-    '2023': [
-      PieChartSectionData(
-        color: Colors.green.shade800,
-        value: 50,
-        title: '50%',
-        radius: 50,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-      PieChartSectionData(
-        color: Colors.red.shade800,
-        value: 50,
-        title: '50%',
-        radius: 50,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-    ],
-    '2024': [
-      PieChartSectionData(
-        color: Colors.green.shade800,
-        value: 70,
-        title: '70%',
-        radius: 50,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-      PieChartSectionData(
-        color: Colors.red.shade800,
-        value: 30,
-        title: '30%',
-        radius: 50,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-    ],
-  };
+  int erradas = 0;
 
   @override
   Widget build(BuildContext context) {
-    final sections = pieDataByYear[widget.selectedYear] ?? [];
-    if (sections.isEmpty) {
+    final respondidas = widget.anosRespondidas[widget.selectedYear] ?? [];
+    final certas = widget.anosCertas[widget.selectedYear] ?? [];
+
+    // Calcular o total de respostas e respostas certas
+    final totalRespondidas = respondidas.reduce((a, b) => a + b);
+    final totalCertas = certas.reduce((a, b) => a + b);
+    final totalErradas = totalRespondidas - totalCertas;
+    erradas = totalErradas;
+
+    if (totalRespondidas == 0) {
       return const Center(
         child: Text(
-          'Sem dados para o ano selecionado',
+          'Nenhuma pergunta respondida neste ano',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
         ),
       );
     }
+
+    final sections = [
+      PieChartSectionData(
+        color: Colors.green.shade800,
+        value: totalCertas.toDouble(),
+        title: '$totalCertas',
+        radius: 50,
+        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+      ),
+      PieChartSectionData(
+        color: Colors.red.shade800,
+        value: totalErradas.toDouble(),
+        title: '$totalErradas',
+        radius: 50,
+        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+      ),
+    ];
 
     return Column(
       children: [
@@ -86,7 +67,7 @@ class _PieDashDoisState extends State<PieDashDois> {
               borderData: FlBorderData(show: false),
               sectionsSpace: 4,
               centerSpaceRadius: 50,
-              sections: showingSections(sections), // Filtra as seções com base no ano
+              sections: showingSections(sections),
               pieTouchData: PieTouchData(
                 touchCallback: (FlTouchEvent event, pieTouchResponse) {
                   if (event is FlTapUpEvent && pieTouchResponse?.touchedSection != null) {
@@ -114,31 +95,29 @@ class _PieDashDoisState extends State<PieDashDois> {
   }
 
   List<PieChartSectionData> showingSections(List<PieChartSectionData> sections) {
-    // Retorna as seções com o aumento de raio para a seção tocada
     return sections.asMap().map((index, section) {
       final isTouched = index == touchedIndex;
-      final double radius = isTouched ? 60 : 50; // Aumenta o raio para 60 se a seção estiver tocada
-      final updatedSection = section.copyWith(radius: radius); // Atualiza a seção com o novo raio
+      final double radius = isTouched ? 60 : 50;
+      final updatedSection = section.copyWith(radius: radius);
       return MapEntry(index, updatedSection);
     }).values.toList();
   }
 
   Widget _mostrarLegenda(int index) {
-    switch (index) {
-      case 0:
-        return ItemLegenda(
-          cor: Colors.green.shade800,
-          legenda: 'Certas: ${(pieDataByYear[widget.selectedYear]?[0].value ?? 0).toInt()}'.toUpperCase(),
-          pie: true,
-        );
-      case 1:
-        return ItemLegenda(
-          cor: Colors.red.shade800,
-          legenda: 'Erradas: ${(pieDataByYear[widget.selectedYear]?[1].value ?? 0).toInt()}'.toUpperCase(),
-          pie: true,
-        );
-      default:
-        return const ItemLegenda(cor: Color.fromARGB(0, 255, 255, 255), legenda: "");
+    if (index == 0) {
+      return ItemLegenda(
+        cor: Colors.green.shade800,
+        legenda: 'Certas: ${(widget.anosCertas[widget.selectedYear]?.reduce((a, b) => a + b) ?? 0).toInt()}'.toUpperCase(),
+        pie: true,
+      );
+    } else if (index == 1) {
+      return ItemLegenda(
+        cor: Colors.red.shade800,
+        legenda: 'Erradas: $erradas'.toUpperCase(),
+        pie: true,
+      );
+    } else {
+      return const ItemLegenda(cor: Colors.transparent, legenda: "");
     }
   }
 }

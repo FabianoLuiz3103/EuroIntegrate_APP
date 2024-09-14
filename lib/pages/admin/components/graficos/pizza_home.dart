@@ -68,7 +68,7 @@ class _PizzaHomeState extends State<PizzaHome> {
       PieChartSectionData(
         color: amareloEuro,
         value: processosRestantes.toDouble(),
-        title: '$porcentagemRestante%',
+        title: '${(porcentagemRestante).toStringAsFixed(2)}%',
         radius: touchedIndex == 0 ? 60 : 50,
         titleStyle: TextStyle(
           fontSize: touchedIndex == 0 ? 18 : 16,

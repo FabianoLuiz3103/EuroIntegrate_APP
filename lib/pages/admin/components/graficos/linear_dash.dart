@@ -3,23 +3,42 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 class LinearDash extends StatelessWidget {
-  final List<String> xLabels = [
-    'ONB-1', 'ONB-2', 'ONB-3', 'ONB-4', 'ONB-5', 
-    'ONB-6', 'ONB-7', 'ONB-8', 'ONB-9', 'ONB-10'
-  ];
-
-  final List<FlSpot> data; 
+  final String selectedYear;
+  final Map<String, Map<String, double>> progressoMes;
   final bool msgEmpty;
   final Color cor;
 
-  LinearDash({required this.data, this.msgEmpty = false, required this.cor});
+  LinearDash({
+    required this.selectedYear,
+    required this.progressoMes,
+    this.msgEmpty = false,
+    required this.cor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return msgEmpty ? const Center(child: Text(
+    final dataMap = progressoMes[selectedYear] ?? {};
+    
+    if (dataMap.isEmpty) {
+      return const Center(
+        child: Text(
           'Sem dados para o ano selecionado',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
-        ),) : Padding(
+        ),
+      );
+    }
+
+    // Converter o Map<String, double> em uma lista de FlSpot
+    final data = dataMap.entries
+        .map((entry) => FlSpot(
+              dataMap.keys.toList().indexOf(entry.key).toDouble(),
+              entry.value,
+            ))
+        .toList();
+
+    final xLabels = dataMap.keys.toList();
+
+    return Padding(
       padding: const EdgeInsets.all(8.0),
       child: LineChart(
         LineChartData(
@@ -46,13 +65,14 @@ class LinearDash extends StatelessWidget {
                 reservedSize: 28,
                 interval: 1,
                 getTitlesWidget: (value, meta) {
-                  if (value.toInt() >= 0 && value.toInt() < xLabels.length) {
+                  final index = value.toInt();
+                  if (index >= 0 && index < xLabels.length) {
                     return Transform.rotate(
                       angle: -0.5,
                       child: Padding(
                         padding: const EdgeInsets.only(top: 4.0),
                         child: Text(
-                          xLabels[value.toInt()],
+                          xLabels[index],
                           style: const TextStyle(fontSize: 10, color: azulEuro),
                         ),
                       ),

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:eurointegrate_app/components/consts.dart';
-import 'package:eurointegrate_app/main.dart';
+import 'package:eurointegrate_app/components/progress.dart';
 import 'package:eurointegrate_app/model/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:appinio_video_player/appinio_video_player.dart';
@@ -35,6 +35,11 @@ class _VideoScreenState extends State<VideoScreen> {
   int ptsAnt = 0;
   int qtdRespondidasAnt = 0;
   int qtdCertasAnt = 0;
+
+
+  bool _isInitializingVideo1 = true;
+  bool _isInitializingVideo2 = true;
+  bool _isInitializingVideo3 = true;
 
   Future<List<List<Pergunta>>> _fetchData() async {
     var url = Uri.parse('$urlAPI/colaboradores/videos/${widget.id}');
@@ -206,20 +211,46 @@ class _VideoScreenState extends State<VideoScreen> {
     }
   }
 
-  void _initializeVideoControllers() {
+   void _retryFetchData() {
+    setState(() {
+     apiService = ApiService(token: widget.token, id: widget.id);
+
+    _fetchPerguntas =
+        Future.wait([_fetchData(), _fetchDataSeq()]).then((results) {
+      List<List<Pergunta>> perguntas = results[0] as List<List<Pergunta>>;
+      List<dynamic> respostas = results[1];
+      _initializeVideoControllers();
+      _marcarPerguntasComoRespondidas(perguntas, respostas);
+      return perguntas;
+    }).catchError((error) {
+      print('Erro ao carregar dados: $error');
+      return [];
+    });
+    });
+  }
+
+ void _initializeVideoControllers() {
     _videoPlayerController1 = CachedVideoPlayerController.network(videoUm!)
       ..initialize().then((_) {
-        setState(() {});
+        setState(() {
+          _isInitializingVideo1 = false;
+        });
         _startVideoTimer(1, _videoPlayerController1);
       });
 
     _videoPlayerController2 = CachedVideoPlayerController.network(videoDois!)
       ..initialize().then((_) {
+        setState(() {
+          _isInitializingVideo2 = false;
+        });
         _startVideoTimer(2, _videoPlayerController2);
       });
 
     _videoPlayerController3 = CachedVideoPlayerController.network(videoTres!)
       ..initialize().then((_) {
+        setState(() {
+          _isInitializingVideo3 = false;
+        });
         _startVideoTimer(3, _videoPlayerController3);
       });
   }
@@ -286,10 +317,16 @@ class _VideoScreenState extends State<VideoScreen> {
         future: _fetchPerguntas,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child:  progressSkin(30),);
           } else if (snapshot.hasError) {
-            return Center(
-                child: Text('Erro ao carregar dados: ${snapshot.error}'));
+            return Center(child:
+              Column(
+                children: [
+                  Text("Erro ao carregar os dados..."),
+                  ElevatedButton(onPressed: _retryFetchData, child: Text("Tente novamente"), style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(azulEuro)),)
+                ],
+              )
+              );
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(child: Text('Nenhuma pergunta disponível.'));
           } else {
@@ -326,6 +363,10 @@ class _VideoScreenState extends State<VideoScreen> {
       CachedVideoPlayerController videoController,
       int videoIndex) {
 
+    bool isInitializing = (videoIndex == 1 && _isInitializingVideo1) ||
+                          (videoIndex == 2 && _isInitializingVideo2) ||
+                          (videoIndex == 3 && _isInitializingVideo3);
+
     return Column(
       children: [
         Padding(
@@ -355,18 +396,20 @@ class _VideoScreenState extends State<VideoScreen> {
           ),
         ),
         Expanded(
-          child: CustomVideoPlayer(
-            customVideoPlayerController: CustomVideoPlayerController(
-              context: context,
-              videoPlayerController: videoController,
-              customVideoPlayerSettings: _customVideoPlayerSettings,
-              additionalVideoSources: {
-                "240p": _videoPlayerController1,
-                "480p": _videoPlayerController2,
-                "720p": _videoPlayerController3,
-              },
-            ),
-          ),
+          child: isInitializing
+              ? Center(child: progressSkin(30)) // Mostra o progressSkin enquanto o vídeo está carregando
+              : CustomVideoPlayer(
+                  customVideoPlayerController: CustomVideoPlayerController(
+                    context: context,
+                    videoPlayerController: videoController,
+                    customVideoPlayerSettings: _customVideoPlayerSettings,
+                    additionalVideoSources: {
+                      "240p": _videoPlayerController1,
+                      "480p": _videoPlayerController2,
+                      "720p": _videoPlayerController3,
+                    },
+                  ),
+                ),
         ),
         SizedBox(height: 12),
         Expanded(
@@ -424,7 +467,7 @@ class _VideoScreenState extends State<VideoScreen> {
                                   ? null
                                   : () {
                                       setState(() {
-                                        pgr += (4/1000);
+                                        pgr += (4 / 1000);
                                         pergunta.selectedOptionIndex = index;
                                         pergunta.isAnswered = true;
                                         pergunta.isCorrect =
@@ -438,10 +481,8 @@ class _VideoScreenState extends State<VideoScreen> {
                                         respondidas.add(new Resposta(
                                             idColaborador: idUser,
                                             idPergunta: pergunta.id,
-                                            resposta:
-                                                pergunta.ops[index].opcao));
+                                            resposta: pergunta.ops[index].opcao));
                                         verificarMudanca();
-                                    
                                       });
                                     },
                             ),
@@ -459,7 +500,6 @@ class _VideoScreenState extends State<VideoScreen> {
     );
   }
 }
-
 class Opcao {
   String texto;
   String opcao;

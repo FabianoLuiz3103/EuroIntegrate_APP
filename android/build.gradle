@@ -3,6 +3,12 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    configurations.all {
+        resolutionStrategy {
+            force 'androidx.core:core-ktx:1.10.1'  // Forçando uma versão compatível
+        }
+    }
 }
 
 rootProject.buildDir = "../build"
@@ -16,3 +22,5 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+

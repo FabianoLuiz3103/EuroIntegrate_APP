@@ -1,4 +1,5 @@
 import 'package:eurointegrate_app/pages/admin/components/sinal_ativo.dart';
+import 'package:eurointegrate_app/pages/login.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -49,12 +50,17 @@ class BannerAdmin extends StatelessWidget {
                         },
                       )
                     else
-                      Expanded(
-                        child: Text(
-                          formattedDate.toUpperCase(),
-                          overflow: TextOverflow.ellipsis, // Adiciona reticências se o texto for muito longo
-                        ),
-                      ),
+                     
+                      IconButton(
+          onPressed: () {
+             Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const Login()),
+                        );
+          },
+          icon: Icon(Icons.power_settings_new),
+        ),
+                     
                     Row(
                       children: [
                         const Text("ATIVO"),
