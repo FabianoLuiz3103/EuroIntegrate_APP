@@ -3,12 +3,6 @@ allprojects {
         google()
         mavenCentral()
     }
-
-    configurations.all {
-        resolutionStrategy {
-            force 'androidx.core:core-ktx:1.10.1'  // Forçando uma versão compatível
-        }
-    }
 }
 
 rootProject.buildDir = "../build"
@@ -16,8 +10,23 @@ subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 subprojects {
-    project.evaluationDependsOn(":app")
+    afterEvaluate { project ->
+        if (project.plugins.hasPlugin("com.android.application") ||
+                project.plugins.hasPlugin("com.android.library")) {
+            project.android {
+                compileSdkVersion 34
+                buildToolsVersion "34.0.0"
+            }
+        }
+    }
 }
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
