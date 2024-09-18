@@ -22,6 +22,7 @@ class DashsIntegracaoScreen extends StatefulWidget {
 }
 
 class _DashsIntegracaoScreenState extends State<DashsIntegracaoScreen> {
+  
   bool _isLoading = true;
   String selectedYearUm = '2024'; // Ano padrão selecionado
   String selectedYearDois = '2024'; // Ano padrão selecionado
@@ -172,6 +173,9 @@ void initState() {
 
   @override
   Widget build(BuildContext context) {
+      final screenWidth = MediaQuery.of(context).size.width;
+    const desktopWidthThreshold = 800.0;
+    final isDesktop = screenWidth > desktopWidthThreshold;
      if (_isLoading) {
       // Exibe um indicador de carregamento enquanto os dados estão sendo carregados
       return Scaffold(
@@ -196,7 +200,8 @@ void initState() {
               const SizedBox(height: 30),
               const CardGraficos(
                 title: "FAIXA ETÁRIA ",
-                //subtitle: "TOTAL DE PROCESSOS: XXX",
+               
+                altura: 60,
               ),
               const SizedBox(
                 height: 30,
@@ -205,7 +210,7 @@ void initState() {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                   mainAxisAlignment: isDesktop ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       "Filtrar Gráfico de Pizza por Ano:",
@@ -241,9 +246,10 @@ void initState() {
               const SizedBox(
                 height: 30,
               ),
-              const CardGraficos(
+               const  CardGraficos(
                 title: "PERGUNTAS RESPONDIDAS",
-                //subtitle: "TOTAL DE PROCESSOS: XXX",
+               
+                altura: 60,
               ),
               const SizedBox(
                 height: 40,
@@ -251,7 +257,7 @@ void initState() {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                   mainAxisAlignment: isDesktop ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       "Filtrar Gráfico de Pizza por Ano:",
@@ -288,13 +294,14 @@ void initState() {
                 height: 30,
               ),
               const CardGraficos(
-                title: "MÉDIA PROGRESSO/MÊS",
-                //subtitle: "TOTAL DE PROCESSOS: XXX",
+                title: "MÉDIA DE PROGRESSO/MÊS",
+                 altura: 60,
+                //subtitle: "TOTAL ",
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: isDesktop ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       "Filtrar por Ano:",
@@ -341,13 +348,14 @@ void initState() {
 
            
               const CardGraficos(
-                title: "MÉDIA PROGRESSO/MÊS",
+                title: "MÉDIA ACERTOS/MÊS",
+                 altura: 60,
                // subtitle: "TOTAL DE PROCESSOS: XXX",
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                   mainAxisAlignment: isDesktop ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       "Filtrar por Ano:",
@@ -391,13 +399,14 @@ void initState() {
                 height: 30,
               ),
               const CardGraficos(
-                title: "PROCESSOS MES",
+                title: "PROCESSOS CRIADOS/MÊS",
                 //subtitle: "TOTAL DE PROCESSOS: XXX",
+                altura: 60,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                   mainAxisAlignment: isDesktop ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       "Filtrar Barra por Ano:",

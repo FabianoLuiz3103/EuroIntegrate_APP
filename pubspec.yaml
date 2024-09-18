@@ -53,7 +53,7 @@ dependencies:
     path: ./dialog_flowtter
   connectivity_plus: ^2.3.1
   easy_localization: ^3.0.0 
-  translator: ^1.0.0
+  flutter_multi_formatter: ^2.1.0
 
 
   

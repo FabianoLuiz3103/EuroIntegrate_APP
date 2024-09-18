@@ -132,7 +132,7 @@ class _ConquistasScreenState extends State<ConquistasScreen> {
                 );
               },
               separatorBuilder: (BuildContext context, int index) {
-                return const Divider(); // Adiciona um divisor entre os itens
+                return const Divider(); 
               },
             );
           }

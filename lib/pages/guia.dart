@@ -282,6 +282,10 @@ void verificarMudanca() {
 
   @override
   Widget build(BuildContext context) {
+      final screenWidth = MediaQuery.of(context).size.width;
+    const desktopWidthThreshold = 800.0;
+    final isDesktop = screenWidth > desktopWidthThreshold;
+       final PageController _pageController = PageController();
     return Scaffold(
       appBar: AppBar(
         title: Text(atual),
@@ -341,13 +345,48 @@ void verificarMudanca() {
       int normasCount = normasAtuais.length;
       return Center(
         child: Container(
-          width: MediaQuery.of(context).size.width * 0.90,
-          height: MediaQuery.of(context).size.height * 0.85,
-          child: PageView(
+          width:  MediaQuery.of(context).size.width * 0.90,
+          height: MediaQuery.of(context).size.height * 0.90,
+          child: Stack(
             children: [
-              for (int i = 0; i < normasCount && i < perguntasList.length; i++)
-                _buildGuiaPage(perguntasList[i], normasAtuais[i]['nome'], normasAtuais[i]['descricao'], i + 1),
-            ],
+               PageView(
+                controller: _pageController,
+              children: [
+                for (int i = 0; i < normasCount && i < perguntasList.length; i++)
+                  _buildGuiaPage(perguntasList[i], normasAtuais[i]['nome'], normasAtuais[i]['descricao'], i + 1),
+              ],
+            ),
+
+            Positioned(
+            left: 10,
+            top: MediaQuery.of(context).size.height / 2 - 20, 
+            child: IconButton(
+              icon: Icon(Icons.arrow_back_ios, color: azulEuro, size: 30,),
+              onPressed: () {
+                _pageController.previousPage(
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+            ),
+          ),
+          Positioned(
+            right: 10,
+            top: MediaQuery.of(context).size.height / 2 - 20, 
+            child: IconButton(
+              icon: Icon(Icons.arrow_forward_ios, color: azulEuro, size: 30,),
+              onPressed: () {
+                _pageController.nextPage(
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+            ),
+          ),
+
+
+            ]
+           
           ),
         ),
       );
@@ -361,8 +400,227 @@ void verificarMudanca() {
   Widget _buildGuiaPage(List<Pergunta> perguntas, String nome, String descricao, int guiaIndex
   ) {
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    const desktopWidthThreshold = 800.0;
+    final isDesktop = screenWidth > desktopWidthThreshold;
 
-    return Column(
+   final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  void _nextPage() {
+    if (_currentPage < perguntas.length - 1) {
+      _pageController.nextPage(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+      setState(() {
+        _currentPage++;
+      });
+    }
+  }
+
+  void _previousPage() {
+    if (_currentPage > 0) {
+      _pageController.previousPage(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+      setState(() {
+        _currentPage--;
+      });
+    }
+  }
+
+
+    return 
+
+    isDesktop ? 
+
+    Column(
+      children: [
+        // Texto de porcentagem
+        // Barra de progresso
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: LinearProgressIndicator(
+                  value: pgr,
+                  color: azulEuro,
+                  backgroundColor: Colors.grey,
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  minHeight: 20,
+                ),
+              ),
+              SizedBox(
+                width: 8,
+              ),
+              Text(
+                "${(pgr * 100).toStringAsFixed(1)}%",
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: azulEuro,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 30,),
+        Padding(
+  padding: const EdgeInsets.all(30.0),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    children: [
+     
+      Container(
+        width: MediaQuery.of(context).size.width * 0.35, 
+        height: MediaQuery.of(context).size.height * 0.55,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16.0),
+          color: cinza,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  nome,
+                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  descricao,
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+     
+
+      Container(
+        width: MediaQuery.of(context).size.width * 0.35, 
+        height: MediaQuery.of(context).size.height * 0.55,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16.0),
+          color: cinza,
+        ),
+        child: Stack(
+          children: [
+
+            PageView(
+              controller: _pageController,
+              onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            children: perguntas.map((pergunta) {
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Text(
+                      pergunta.enunciado,
+                      style: TextStyle(fontSize: 15, color: Colors.black),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: pergunta.ops.length,
+                      itemBuilder: (context, index) {
+                        bool isCorrect = false;
+                        Color buttonColor = azulEuro;
+          
+                        if (pergunta.selectedOptionIndex == index) {
+                          isCorrect = pergunta.checkAnswer(index);
+                          buttonColor = isCorrect ? Colors.green : Colors.red;
+                        }
+          
+                        return ListTile(
+                          title: TextButton(
+                            style: ButtonStyle(
+                              backgroundColor: WidgetStateProperty.all(buttonColor),
+                              shape: WidgetStateProperty.all(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18.0),
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              pergunta.ops[index].texto,
+                              style: TextStyle(fontSize: 15, color: Colors.white),
+                            ),
+                            onPressed: pergunta.isAnswered
+                                ? null
+                                : () {
+                                    setState(() {
+                                      pgr += (4 / 1000);
+                                      pergunta.selectedOptionIndex = index;
+                                      pergunta.isAnswered = true;
+                                      pergunta.isCorrect = pergunta.checkAnswer(index);
+                                      if (pergunta.isCorrect!) {
+                                        pts += 1;
+                                        qtdCertas += 1;
+                                      }
+                                      qtdRespondidas += 1;
+                                      pgrEnv = (pgr * 100);
+                                      respondidas.add(new Resposta(
+                                          idColaborador: idUser,
+                                          idPergunta: pergunta.id,
+                                          resposta: pergunta.ops[index].opcao));
+                                      verificarMudanca();
+                                    });
+                                  },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+
+            Positioned(
+            left: 10,
+            top: MediaQuery.of(context).size.height / 2 - 290,
+            child: IconButton(
+              icon: Icon(Icons.arrow_back_ios, color: azulEuro, size: 20,),
+              onPressed: _previousPage,
+            ),
+          ),
+          Positioned(
+            right: 10,
+            top: MediaQuery.of(context).size.height / 2 - 290,
+            child: IconButton(
+              icon: Icon(Icons.arrow_forward_ios, color: azulEuro, size: 20,),
+              onPressed: _nextPage,
+            ),
+          ),
+
+          ],
+        ),
+      ),
+    ],
+  ),
+)
+
+        
+      ],
+    ) :
+    
+    
+    Column(
       children: [
         // Texto de porcentagem
         // Barra de progresso

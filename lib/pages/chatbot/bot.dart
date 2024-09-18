@@ -1,4 +1,5 @@
 import 'package:dialog_flowtter/dialog_flowtter.dart';
+import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/pages/chatbot/Messages.dart';
 import 'package:flutter/material.dart';
 
@@ -28,6 +29,7 @@ class _TelaBotState extends State<TelaBot> {
     return Scaffold(
       appBar: AppBar(
         title: Text('EuroBot'),
+        backgroundColor: azulEuro,
       ),
       body: Container(
         child: Column(

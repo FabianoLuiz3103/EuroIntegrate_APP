@@ -16,7 +16,7 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  final TextEditingController _email = TextEditingController();
+  final TextEditingController _cpf = TextEditingController();
   final TextEditingController _senha = TextEditingController();
    final _formKey = GlobalKey<FormState>();
   String? _mensagemErro;
@@ -32,7 +32,7 @@ setState(() {
       _mensagemErro = null;
     });
     var url = Uri.parse('$urlAPI/users/login');
-    var body = {"email": _email.text, "senha": _senha.text};
+    var body = {"cpf": removePontuacao(_cpf.text), "senha": _senha.text};
     var jsonBody = jsonEncode(body);
     http.Response? response;
     try {
@@ -97,10 +97,14 @@ setState(() {
     });
   }
 
+  String removePontuacao(String cpf){
+    return cpf.replaceAll(RegExp(r'[.-]'), '');
+  }
+
   @override
   void dispose() {
     // TODO: implement dispose
-    _email.dispose();
+    _cpf.dispose();
     _senha.dispose();
     super.dispose();
   }
@@ -137,10 +141,7 @@ Widget build(BuildContext context) {
                     height: 150,
                     decoration: const BoxDecoration(
                       color: azulEuro,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: medidaRaio,
-                        bottomRight: medidaRaio,
-                      ),
+                     
                     ),
                     child: FractionallySizedBox(
                       widthFactor: 1.5,
@@ -164,10 +165,10 @@ Widget build(BuildContext context) {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(60.0, 8.0, 60.0, 8.0),
                         child: campoForm(
-                          controller: _email,
-                          keyboardType: TextInputType.emailAddress,
+                          controller: _cpf,
+                          keyboardType: TextInputType.number,
                           obscureText: false,
-                          label: 'E-mail',
+                          label: 'CPF',
                           erro: erro,
                           isSenha: false,
                           validacao: (value) {
@@ -176,6 +177,7 @@ Widget build(BuildContext context) {
                             }
                             return null;
                           },
+                          isCpf: true,
                         ),
                       ),
                       const SizedBox(height: 15.0),
@@ -194,6 +196,7 @@ Widget build(BuildContext context) {
                             }
                             return null;
                           },
+                          isCpf: false,
                         ),
                       ),
                       const SizedBox(height: 15.0),
@@ -201,7 +204,11 @@ Widget build(BuildContext context) {
                         width: 200,
                         height: 45,
                         child: ElevatedButton(
-                          onPressed: _carregando ? null : _login,
+                         onPressed: _carregando ? null : _login,
+                        //  onPressed: (){
+                        //   print(removePontuacao(_cpf.text));
+                        //   print(_senha.text);
+                        //  },
                           style: const ButtonStyle(
                             backgroundColor: botaoAzul,
                             shape: radiusBorda,
@@ -226,5 +233,4 @@ Widget build(BuildContext context) {
           ),
   );
 }
-
 }

@@ -12,6 +12,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
 
 
 
@@ -68,8 +69,14 @@ class _HomeState extends State<Home> {
     });
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    const desktopWidthThreshold = 800.0;
+    final isDesktop = screenWidth > desktopWidthThreshold;
+
     return Scaffold(
       body: SafeArea(
         child: FutureBuilder<Map?>(
@@ -84,9 +91,7 @@ class _HomeState extends State<Home> {
                     const SizedBox(
                       height: 5,
                     ),
-                    Text(
-                      "Validando dados...",
-                    )
+                   
                   ],
                 ),
               );
@@ -94,8 +99,8 @@ class _HomeState extends State<Home> {
               return Center(child:
               Column(
                 children: [
-                  Text("Erro ao carregar os dados..."),
-                  ElevatedButton(onPressed: _retryFetchData, child: Text("Tente novamente"), style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(azulEuro)),)
+                  const Text("Erro ao carregar os dados..."),
+                  ElevatedButton(onPressed: _retryFetchData, style: const  ButtonStyle(backgroundColor: WidgetStatePropertyAll(azulEuro)), child: const Text("Tente novamente"),)
                 ],
               )
               );
@@ -116,7 +121,7 @@ class _HomeState extends State<Home> {
                       children: [
                         Container(
                           width: double.infinity,
-                          height: 350,
+                          height: isDesktop ? 300 : 350,
                           decoration: const BoxDecoration(
                             color: azulEuro,
                           ),
@@ -125,7 +130,7 @@ class _HomeState extends State<Home> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               SizedBox(
-                                height: 40,                              ),
+                                height: isDesktop ? 25 : 40,                              ),
                               SizedBox(
                                 child: AvatarMakerAvatar(
                                   backgroundColor: Colors.grey[200],
@@ -147,7 +152,7 @@ class _HomeState extends State<Home> {
                           ),
                         ),
                         Positioned(
-                          top: 280,
+                          top: isDesktop ? 255 : 280,
                           left: 0,
                           right: 0,
                           child: Align(
@@ -170,7 +175,7 @@ class _HomeState extends State<Home> {
                                 numberRight: _dados["pontuacao"].toDouble(),
                               ),
                               largura: 300,
-                              altura: 150,
+                              altura: isDesktop ? 120 : 150,
                             ),
                           ),
                         ),
@@ -179,7 +184,165 @@ class _HomeState extends State<Home> {
                     const SizedBox(
                       height: 80,
                     ),
-                    Padding(
+
+                    
+                    isDesktop ? 
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                      
+                    Column(
+                      children: [
+                        const Text("INTEGRAÇÃO", style: TextStyle(color: cinza),),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8, right: 8, top: 6),
+                          child: Container(
+                            width: 400,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(20)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  spreadRadius: 5,
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.only(left: 1),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              "${_dados["departamento"]["nome"]}"
+                                                  .toUpperCase(),
+                                              style: const TextStyle(fontSize: 16),
+                                            ),
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        Expanded(
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              "${_dados["stsIntegracao"]}",
+                                              
+                                              style: const TextStyle(fontSize: 16),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 10,),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 1),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Expanded(
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              "INI: ${formatarData(_dados["dataInicio"])}",
+                                              style: const TextStyle(fontSize: 16),
+                                            ),
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        Expanded(
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              "FIM: ${formatarData(_dados["dataFim"])}",
+                                              style: const TextStyle(fontSize: 16),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: LinearProgressIndicator(
+                                            value: (_dados["porcProgresso"]) / 100,
+                                            color: azulEuro,
+                                            backgroundColor: Colors.grey,
+                                            borderRadius: const BorderRadius.all(
+                                                Radius.circular(20)),
+                                            minHeight: 20,
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 6,
+                                        ),
+                                        Text(
+                                          "${_dados["porcProgresso"].toStringAsFixed(1)}%",
+                                          style: const TextStyle(fontSize: 15),
+                                        )
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                          
+                    Column(
+                      children: [
+                        const Text("PERGUNTAS", style: TextStyle(color: cinza),),
+                        Padding(
+                           padding: const EdgeInsets.only(left: 8, right: 8, top: 6),
+                          child: container(
+                              card: card(
+                                iconLeft: const Icon(
+                                  Icons.description,
+                                  color: azulEuro,
+                                  size: 40,
+                                ),
+                                textLeft: const Text("RESPONDIDAS"),
+                                numberLeft: _dados["qtdRespondidas"].toDouble(),
+                                iconRight: const Icon(
+                                  Icons.check_box,
+                                  color: Colors.green,
+                                  size: 40,
+                                ),
+                                textRight: const Text("CERTAS"),
+                                numberRight: _dados["qtdCertas"].toDouble(),
+                              ),
+                              altura: 120,
+                              largura: 400,)
+                        ),
+                      ],
+                    ),
+                      ],
+                    ) :
+
+                    Column(
+                      children: [
+                        Padding(
                       padding: const EdgeInsets.only(top: 12),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -203,7 +366,7 @@ class _HomeState extends State<Home> {
                               ),
                             ),
                           ),
-                          Expanded(
+                          const Expanded(
                             child: Center(
                               child: Text(
                                 "INTEGRAÇÃO",
@@ -368,7 +531,7 @@ class _HomeState extends State<Home> {
                               ),
                             ),
                           ),
-                          Expanded(
+                          const Expanded(
                             child: Center(
                               child: Text(
                                 "PERGUNTAS",
@@ -420,9 +583,14 @@ class _HomeState extends State<Home> {
                           altura: 180,
                           largura: double.infinity),
                     ),
+                      ],
+                    ),
+                   
                     const SizedBox(
                       height: 40,
                     )
+
+                    
                   ],
                 ),
               );
@@ -472,16 +640,17 @@ Future<void> _showMyDialog(BuildContext context) async {
     builder: (BuildContext context) {
       return Dialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30.0), // Define o raio dos cantos arredondados
+          borderRadius: BorderRadius.circular(30.0), 
         ),
-        backgroundColor: Colors.transparent, // Deixa o fundo transparente
+        backgroundColor: Colors.transparent, 
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(30.0), // Mantém os cantos arredondados do conteúdo
+          borderRadius: BorderRadius.circular(30.0), 
           child: Container(
-            color: Colors.white, // Define a cor de fundo do conteúdo
-            width: MediaQuery.of(context).size.width * 0.98, // 98% da largura da tela
-            height: MediaQuery.of(context).size.height * 0.85, // 85% da altura da tela
-            child: TelaBot(), // Seu widget de chatbot
+            color: Colors.white, 
+           
+            width:  kIsWeb ? MediaQuery.of(context).size.width * 0.70 : MediaQuery.of(context).size.width * 0.98, 
+            height: kIsWeb ? MediaQuery.of(context).size.height * 0.80 : MediaQuery.of(context).size.height * 0.85,
+            child: const TelaBot(), // Seu widget de chatbot
           ),
         ),
       );

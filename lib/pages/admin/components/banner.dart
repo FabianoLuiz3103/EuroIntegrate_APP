@@ -17,7 +17,10 @@ class BannerAdmin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String formattedDate = DateFormat('MMMM - yyyy', 'pt_BR').format(DateTime.now());
+
+     final screenWidth = MediaQuery.of(context).size.width;
+    const desktopWidthThreshold = 800.0;
+    final isDesktop = screenWidth > desktopWidthThreshold;
 
     return Center(
       child: Padding(
@@ -71,7 +74,21 @@ class BannerAdmin extends StatelessWidget {
                   ],
                 ),
               ),
+              isDesktop ?
               Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, size: 50),
+                    SizedBox(width: 15,),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 35),
+                      child: titulo,
+                    ),
+                  ],
+                ),
+              )
+               : Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [

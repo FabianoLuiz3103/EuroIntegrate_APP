@@ -1,5 +1,6 @@
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 
 
 Widget campoForm({
@@ -11,6 +12,7 @@ Widget campoForm({
   void Function()? mostrarSenha,
   required bool isSenha,
   required FormFieldValidator<String> validacao,
+  bool? isCpf
 }) {
   final borderSide = BorderSide(
     color: erro ? Colors.red : Colors.grey, // Cor padrão ou cor de erro
@@ -60,6 +62,9 @@ Widget campoForm({
             : null,
       ),
       validator: validacao,
+      inputFormatters: isCpf! ? [
+        MaskedInputFormatter('###.###.###-##'),
+      ] : [],
     ),
   );
 }
