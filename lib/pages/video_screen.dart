@@ -36,7 +36,6 @@ class _VideoScreenState extends State<VideoScreen> {
   int qtdRespondidasAnt = 0;
   int qtdCertasAnt = 0;
 
-
   bool _isInitializingVideo1 = true;
   bool _isInitializingVideo2 = true;
   bool _isInitializingVideo3 = true;
@@ -95,7 +94,7 @@ class _VideoScreenState extends State<VideoScreen> {
         qtdCertas = data['qtdCertas'];
         respostas = data['respostas'];
 
-       //variáveis para verificar se teve mudança
+        //variáveis para verificar se teve mudança
         pgrAnt = pgr;
         ptsAnt = pts;
         qtdRespondidasAnt = qtdRespondidas;
@@ -211,25 +210,25 @@ class _VideoScreenState extends State<VideoScreen> {
     }
   }
 
-   void _retryFetchData() {
+  void _retryFetchData() {
     setState(() {
-     apiService = ApiService(token: widget.token, id: widget.id);
+      apiService = ApiService(token: widget.token, id: widget.id);
 
-    _fetchPerguntas =
-        Future.wait([_fetchData(), _fetchDataSeq()]).then((results) {
-      List<List<Pergunta>> perguntas = results[0] as List<List<Pergunta>>;
-      List<dynamic> respostas = results[1];
-      _initializeVideoControllers();
-      _marcarPerguntasComoRespondidas(perguntas, respostas);
-      return perguntas;
-    }).catchError((error) {
-      print('Erro ao carregar dados: $error');
-      return [];
-    });
+      _fetchPerguntas =
+          Future.wait([_fetchData(), _fetchDataSeq()]).then((results) {
+        List<List<Pergunta>> perguntas = results[0] as List<List<Pergunta>>;
+        List<dynamic> respostas = results[1];
+        _initializeVideoControllers();
+        _marcarPerguntasComoRespondidas(perguntas, respostas);
+        return perguntas;
+      }).catchError((error) {
+        print('Erro ao carregar dados: $error');
+        return [];
+      });
     });
   }
 
- void _initializeVideoControllers() {
+  void _initializeVideoControllers() {
     _videoPlayerController1 = CachedVideoPlayerController.network(videoUm!)
       ..initialize().then((_) {
         setState(() {
@@ -263,9 +262,8 @@ class _VideoScreenState extends State<VideoScreen> {
           _videoTimers[videoIndex] = Timer.periodic(Duration(seconds: 1), (_) {
             if (videoController.value.isPlaying &&
                 !videoController.value.isBuffering) {
-                  
               setState(() {
-                pgr += (2/1000);
+                pgr += (2 / 1000);
                 pgrEnv = (pgr * 100);
                 verificarMudanca();
               });
@@ -289,25 +287,22 @@ class _VideoScreenState extends State<VideoScreen> {
 
   @override
   void dispose() {
-    
     _progressTimer?.cancel();
     _videoPlayerController1.dispose();
     _videoPlayerController2.dispose();
     _videoPlayerController3.dispose();
     _videoTimers.forEach((_, timer) => timer?.cancel());
     // Use Future.microtask to ensure that these functions run in the background.
-    if(mudanca){
-          Future.microtask(() async {
-            print(pgrEnv);
-      await apiService.enviarDados(pgrEnv, pts, qtdRespondidas, qtdCertas);
-      await apiService.enviarRespostas(respondidas);
-    });
+    if (mudanca) {
+      Future.microtask(() async {
+        print(pgrEnv);
+        await apiService.enviarDados(pgrEnv, pts, qtdRespondidas, qtdCertas);
+        await apiService.enviarRespostas(respondidas);
+      });
     }
 
     super.dispose();
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -321,462 +316,531 @@ class _VideoScreenState extends State<VideoScreen> {
         backgroundColor: azulEuro,
       ),
       body: FutureBuilder<List<List<Pergunta>>>(
-          future: _fetchPerguntas,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child:  progressSkin(30),);
-            } else if (snapshot.hasError) {
-              return Center(child:
-                Column(
-                  children: [
-                    Text("Erro ao carregar os dados..."),
-                    ElevatedButton(onPressed: _retryFetchData, child: Text("Tente novamente"), style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(azulEuro)),)
-                  ],
+        future: _fetchPerguntas,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: progressSkin(30),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+                child: Column(
+              children: [
+                Text("Erro ao carregar os dados..."),
+                ElevatedButton(
+                  onPressed: _retryFetchData,
+                  child: Text("Tente novamente"),
+                  style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(azulEuro)),
                 )
-                );
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: Text('Nenhuma pergunta disponível.'));
-            } else {
-              List<List<Pergunta>> perguntasList = snapshot.data!;
-              List<CachedVideoPlayerController> controlles = [
-                _videoPlayerController1,
-                _videoPlayerController2,
-                _videoPlayerController3
-              ];
-              int controllerCount = controlles.length;
-              return Center(
-                child: Container(
-                   width:  isDesktop ? MediaQuery.of(context).size.width * 1 : MediaQuery.of(context).size.width * 0.90, 
-              height: isDesktop ? MediaQuery.of(context).size.width * 1: MediaQuery.of(context).size.height * 0.85,
-                  child: Stack(
-        children: [
-          PageView(
-            controller: _pageController,
-            children: [
-              for (int i = 0; i < controllerCount && i < perguntasList.length; i++)
-                _buildVideoPage(perguntasList[i], controlles[i], i + 1),
-            ],
-          ),
-         isDesktop ? Positioned(
-            left: 10,
-            top: MediaQuery.of(context).size.height / 2 - 20, 
-            child: IconButton(
-              icon: Icon(Icons.arrow_back_ios, color: azulEuro, size: 30,),
-              onPressed: () {
-                _pageController.previousPage(
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
-            ),
-          ) : SizedBox(),
-          isDesktop ? Positioned(
-            right: 10,
-            top: MediaQuery.of(context).size.height / 2 - 20, 
-            child: IconButton(
-              icon: Icon(Icons.arrow_forward_ios, color: azulEuro, size: 30,),
-              onPressed: () {
-                _pageController.nextPage(
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
-            ),
-          ) : SizedBox(),
-        ],
-      ),
+              ],
+            ));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('Nenhuma pergunta disponível.'));
+          } else {
+            List<List<Pergunta>> perguntasList = snapshot.data!;
+            List<CachedVideoPlayerController> controlles = [
+              _videoPlayerController1,
+              _videoPlayerController2,
+              _videoPlayerController3
+            ];
+            int controllerCount = controlles.length;
+            return Center(
+              child: Container(
+                width: isDesktop
+                    ? MediaQuery.of(context).size.width * 1
+                    : MediaQuery.of(context).size.width * 0.90,
+                height: isDesktop
+                    ? MediaQuery.of(context).size.width * 1
+                    : MediaQuery.of(context).size.height * 0.85,
+                child: Stack(
+                  children: [
+                    PageView(
+                      controller: _pageController,
+                      children: [
+                        for (int i = 0;
+                            i < controllerCount && i < perguntasList.length;
+                            i++)
+                          _buildVideoPage(
+                              perguntasList[i], controlles[i], i + 1),
+                      ],
+                    ),
+                    isDesktop
+                        ? Positioned(
+                            left: 10,
+                            top: MediaQuery.of(context).size.height / 2 - 20,
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.arrow_back_ios,
+                                color: azulEuro,
+                                size: 30,
+                              ),
+                              onPressed: () {
+                                _pageController.previousPage(
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              },
+                            ),
+                          )
+                        : SizedBox(),
+                    isDesktop
+                        ? Positioned(
+                            right: 10,
+                            top: MediaQuery.of(context).size.height / 2 - 20,
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.arrow_forward_ios,
+                                color: azulEuro,
+                                size: 30,
+                              ),
+                              onPressed: () {
+                                _pageController.nextPage(
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              },
+                            ),
+                          )
+                        : SizedBox(),
+                  ],
                 ),
-              );
-            }
-          },
-        ),
-      );
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 
-  Widget _buildVideoPage(
-      List<Pergunta> perguntas,
-      CachedVideoPlayerController videoController,
-      int videoIndex) {
-
+  Widget _buildVideoPage(List<Pergunta> perguntas,
+      CachedVideoPlayerController videoController, int videoIndex) {
     bool isInitializing = (videoIndex == 1 && _isInitializingVideo1) ||
-                          (videoIndex == 2 && _isInitializingVideo2) ||
-                          (videoIndex == 3 && _isInitializingVideo3);
-    
+        (videoIndex == 2 && _isInitializingVideo2) ||
+        (videoIndex == 3 && _isInitializingVideo3);
+
     final screenWidth = MediaQuery.of(context).size.width;
     const desktopWidthThreshold = 800.0;
     final isDesktop = screenWidth > desktopWidthThreshold;
-    final videoHeight = isDesktop ? MediaQuery.of(context).size.height * 0.5 : MediaQuery.of(context).size.height * 0.85;
-  final videoWidth = isDesktop ? MediaQuery.of(context).size.width * 0.6 : MediaQuery.of(context).size.height * 0.90;
+    final videoHeight = isDesktop
+        ? MediaQuery.of(context).size.height * 0.5
+        : MediaQuery.of(context).size.height * 0.85;
+    final videoWidth = isDesktop
+        ? MediaQuery.of(context).size.width * 0.6
+        : MediaQuery.of(context).size.height * 0.90;
 
-   final PageController _pageController = PageController();
-  int _currentPage = 0;
+    final PageController _pageController = PageController();
+    int _currentPage = 0;
 
-  void _nextPage() {
-    if (_currentPage < perguntas.length - 1) {
-      _pageController.nextPage(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-      setState(() {
-        _currentPage++;
-      });
+    void _nextPage() {
+      if (_currentPage < perguntas.length - 1) {
+        _pageController.nextPage(
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+        setState(() {
+          _currentPage++;
+        });
+      }
     }
-  }
 
-  void _previousPage() {
-    if (_currentPage > 0) {
-      _pageController.previousPage(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-      setState(() {
-        _currentPage--;
-      });
+    void _previousPage() {
+      if (_currentPage > 0) {
+        _pageController.previousPage(
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+        setState(() {
+          _currentPage--;
+        });
+      }
     }
-  }
 
-    return 
-    isDesktop ?
-
-    Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-  children: [
-    Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: LinearProgressIndicator(
-              value: pgr,
-              color: azulEuro,
-              backgroundColor: Colors.grey,
-              borderRadius: BorderRadius.all(Radius.circular(20)),
-              minHeight: 20,
-            ),
-          ),
-          SizedBox(width: 30),
-          Text(
-            "${(pgr * 100).toStringAsFixed(1)}%",
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: azulEuro,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    ),
-
-    Padding(
-      padding: const EdgeInsets.only(right: 100, top: 60),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: videoWidth, // Ajuste a largura conforme necessário
-            height: videoHeight, // Ajuste a altura conforme necessário
-            child: isInitializing
-                ? Center(child: progressSkin(30)) 
-                : FittedBox(
-                    fit: BoxFit.contain,
-                    child: SizedBox(
-                      width: videoController.value.size.width,
-                      height: videoController.value.size.height,
-                      child: CustomVideoPlayer(
-                        customVideoPlayerController: CustomVideoPlayerController(
-                          context: context,
-                          videoPlayerController: videoController,
-                          customVideoPlayerSettings: _customVideoPlayerSettings = const CustomVideoPlayerSettings(
-                            showFullscreenButton: true, // Habilita o botão fullscreen
-                            showSeekButtons: true,
-                          ),
-                          additionalVideoSources: {
-                            "240p": _videoPlayerController1,
-                            "480p": _videoPlayerController2,
-                            "720p": _videoPlayerController3,
-                          },
-                        ),
+    return isDesktop
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: LinearProgressIndicator(
+                        value: pgr,
+                        color: azulEuro,
+                        backgroundColor: Colors.grey,
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        minHeight: 20,
                       ),
                     ),
-                  ),
-          ),
-      
-          // Container para o PageView
-          Expanded(
-            child: Container(
-              height: videoHeight, // Definindo a altura do PageView
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16.0),
-                color: cinza,
-              ),
-              child: Stack(
-        children: [
-          PageView(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            children: perguntas.map((pergunta) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text(
-                      pergunta.enunciado,
-                      style: TextStyle(fontSize: 15, color: Colors.black),
+                    SizedBox(width: 30),
+                    Text(
+                      "${(pgr * 100).toStringAsFixed(1)}%",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: azulEuro,
+                      ),
                       textAlign: TextAlign.center,
                     ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: pergunta.ops.length,
-                      itemBuilder: (context, index) {
-                        bool isSelected = pergunta.selectedOptionIndex == index;
-                        bool isCorrectOption = pergunta.ops[index].opcao == pergunta.respostaCorreta;
-
-                        return ListTile(
-                          title: TextButton(
-                            style: ButtonStyle(
-                              backgroundColor: WidgetStateProperty.all(
-                                isSelected
-                                    ? (pergunta.isCorrect! && isCorrectOption
-                                        ? Colors.green
-                                        : !isCorrectOption
-                                            ? Colors.red
-                                            : azulEuro)
-                                    : azulEuro,
-                              ),
-                              shape: WidgetStateProperty.all(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(18.0),
-                                ),
-                              ),
-                            ),
-                            child: Text(
-                              pergunta.ops[index].texto,
-                              style: TextStyle(fontSize: 15, color: Colors.white),
-                            ),
-                            onPressed: pergunta.isAnswered
-                                ? null
-                                : () {
-                                    setState(() {
-                                      pergunta.selectedOptionIndex = index;
-                                      pergunta.isAnswered = true;
-                                      pergunta.isCorrect = pergunta.checkAnswer(index);
-                                      if (pergunta.isCorrect!) {
-                                        // Pontuação e outras lógicas aqui
-                                      }
-                                      // Outras ações necessárias
-                                    });
-                                  },
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              );
-            }).toList(),
-          ),
-          Positioned(
-            left: 10,
-            top: MediaQuery.of(context).size.height / 2 - 290,
-            child: IconButton(
-              icon: Icon(Icons.arrow_back_ios, color: azulEuro, size: 20,),
-              onPressed: _previousPage,
-            ),
-          ),
-          Positioned(
-            right: 10,
-            top: MediaQuery.of(context).size.height / 2 - 290,
-            child: IconButton(
-              icon: Icon(Icons.arrow_forward_ios, color: azulEuro, size: 20,),
-              onPressed: _nextPage,
-            ),
-          ),
-        ],
-      ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  ],
-)
-:
-    
-    Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: LinearProgressIndicator(
-                  value: pgr,
-                  color: azulEuro,
-                  backgroundColor: Colors.grey,
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  minHeight: 20,
+                  ],
                 ),
               ),
-              SizedBox(width: 8),
-              Text(
-                "${(pgr * 100).toStringAsFixed(1)}%",
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: azulEuro,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-
-       isDesktop ?
-         Container(
-          width: videoWidth,
-          height: videoHeight,
-          child: isInitializing
-              ? Center(child: progressSkin(30)) 
-              : FittedBox(
-                fit: BoxFit.contain,
-                child: SizedBox(
-                  width: videoController.value.size.width,
-            height: videoController.value.size.height,
-                  child: CustomVideoPlayer(
-                      customVideoPlayerController: CustomVideoPlayerController(
-                        context: context,
-                        videoPlayerController: videoController,
-                        customVideoPlayerSettings: _customVideoPlayerSettings =const CustomVideoPlayerSettings(
-                        showFullscreenButton: true, // Habilita o botão fullscreen
-                        showSeekButtons: true,
-                      ),
-                        additionalVideoSources: {
-                          "240p": _videoPlayerController1,
-                          "480p": _videoPlayerController2,
-                          "720p": _videoPlayerController3,
-                        },
-                      ),
-                    ),
-                ),
-              ),
-        ) :
-        Expanded(
-          child: isInitializing ?
-          Center(child: progressSkin(30)) :
-           CustomVideoPlayer(
-            customVideoPlayerController: CustomVideoPlayerController(
-              context: context,
-              videoPlayerController: videoController,
-               customVideoPlayerSettings: _customVideoPlayerSettings =const CustomVideoPlayerSettings(
-                        showFullscreenButton: true, // Habilita o botão fullscreen
-                        showSeekButtons: true,
-                      ),
-              additionalVideoSources: {
-                "240p": _videoPlayerController1,
-                "480p": _videoPlayerController2,
-                "720p": _videoPlayerController3,
-              },
-            ),
-          ),
-        ),
-        SizedBox(height: 12),
-        Expanded(
-          child: Container(
-            
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16.0),
-              color: cinza,
-            ),
-            child: PageView(
-              children: perguntas.map((pergunta) {
-                return Column(
+              Padding(
+                padding: const EdgeInsets.only(right: 100, top: 60),
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Text(
-                        pergunta.enunciado,
-                        style: TextStyle(fontSize: 15, color: Colors.black),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: pergunta.ops.length,
-                        itemBuilder: (context, index) {
-                          bool isSelected =
-                              pergunta.selectedOptionIndex == index;
-                          bool isCorrectOption = pergunta.ops[index].opcao ==
-                              pergunta.respostaCorreta;
-
-                          return ListTile(
-                            title: TextButton(
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStateProperty.all(
-                                  isSelected
-                                      ? (pergunta.isCorrect! && isCorrectOption
-                                          ? Colors.green
-                                          : !isCorrectOption
-                                              ? Colors.red
-                                              : azulEuro)
-                                      : azulEuro,
-                                ),
-                                shape: WidgetStateProperty.all(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(18.0),
+                    Container(
+                      width: videoWidth, // Ajuste a largura conforme necessário
+                      height:
+                          videoHeight, // Ajuste a altura conforme necessário
+                      child: isInitializing
+                          ? Center(child: progressSkin(30))
+                          : FittedBox(
+                              fit: BoxFit.contain,
+                              child: SizedBox(
+                                width: videoController.value.size.width,
+                                height: videoController.value.size.height,
+                                child: CustomVideoPlayer(
+                                  customVideoPlayerController:
+                                      CustomVideoPlayerController(
+                                    context: context,
+                                    videoPlayerController: videoController,
+                                    customVideoPlayerSettings:
+                                        _customVideoPlayerSettings =
+                                            const CustomVideoPlayerSettings(
+                                      showFullscreenButton:
+                                          true, // Habilita o botão fullscreen
+                                      showSeekButtons: true,
+                                    ),
+                                    additionalVideoSources: {
+                                      "240p": _videoPlayerController1,
+                                      "480p": _videoPlayerController2,
+                                      "720p": _videoPlayerController3,
+                                    },
                                   ),
                                 ),
                               ),
-                              child: Text(
-                                pergunta.ops[index].texto,
-                                style: TextStyle(
-                                    fontSize: 15, color: Colors.white),
-                              ),
-                              onPressed: pergunta.isAnswered
-                                  ? null
-                                  : () {
-                                      setState(() {
-                                        pgr += (4 / 1000);
-                                        pergunta.selectedOptionIndex = index;
-                                        pergunta.isAnswered = true;
-                                        pergunta.isCorrect =
-                                            pergunta.checkAnswer(index);
-                                        if (pergunta.isCorrect!) {
-                                          pts += 1;
-                                          qtdCertas += 1;
-                                        }
-                                        qtdRespondidas += 1;
-                                        pgrEnv = (pgr * 100);
-                                        respondidas.add(new Resposta(
-                                            idColaborador: idUser,
-                                            idPergunta: pergunta.id,
-                                            resposta: pergunta.ops[index].opcao));
-                                        verificarMudanca();
-                                      });
-                                    },
                             ),
-                          );
-                        },
+                    ),
+
+                    // Container para o PageView
+                    Expanded(
+                      child: Container(
+                        height: videoHeight, // Definindo a altura do PageView
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16.0),
+                          color: cinza,
+                        ),
+                        child: Stack(
+                          children: [
+                            PageView(
+                              controller: _pageController,
+                              onPageChanged: (index) {
+                                setState(() {
+                                  _currentPage = index;
+                                });
+                              },
+                              children: perguntas.map((pergunta) {
+                                return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Text(
+                                        pergunta.enunciado,
+                                        style: TextStyle(
+                                            fontSize: 15, color: Colors.black),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: ListView.builder(
+                                        itemCount: pergunta.ops.length,
+                                        itemBuilder: (context, index) {
+                                          bool isSelected =
+                                              pergunta.selectedOptionIndex ==
+                                                  index;
+                                          bool isCorrectOption =
+                                              pergunta.ops[index].opcao ==
+                                                  pergunta.respostaCorreta;
+
+                                          return ListTile(
+                                            title: TextButton(
+                                              style: ButtonStyle(
+                                                backgroundColor:
+                                                    WidgetStateProperty.all(
+                                                  isSelected
+                                                      ? (pergunta.isCorrect! &&
+                                                              isCorrectOption
+                                                          ? Colors.green
+                                                          : !isCorrectOption
+                                                              ? Colors.red
+                                                              : azulEuro)
+                                                      : azulEuro,
+                                                ),
+                                                shape: WidgetStateProperty.all(
+                                                  RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            18.0),
+                                                  ),
+                                                ),
+                                              ),
+                                              child: Text(
+                                                pergunta.ops[index].texto,
+                                                style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: Colors.white),
+                                              ),
+                                              onPressed: pergunta.isAnswered
+                                        ? null
+                                        : () {
+                                            setState(() {
+                                              pgr += (4 / 1000);
+                                              pergunta.selectedOptionIndex =
+                                                  index;
+                                              pergunta.isAnswered = true;
+                                              pergunta.isCorrect =
+                                                  pergunta.checkAnswer(index);
+                                              if (pergunta.isCorrect!) {
+                                                pts += 1;
+                                                qtdCertas += 1;
+                                              }
+                                              qtdRespondidas += 1;
+                                              pgrEnv = (pgr * 100);
+                                              respondidas.add(new Resposta(
+                                                  idColaborador: idUser,
+                                                  idPergunta: pergunta.id,
+                                                  resposta: pergunta
+                                                      .ops[index].opcao));
+                                              verificarMudanca();
+                                            });
+                                          },
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                            Positioned(
+                              left: 10,
+                              top: MediaQuery.of(context).size.height / 2 - 290,
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.arrow_back_ios,
+                                  color: azulEuro,
+                                  size: 20,
+                                ),
+                                onPressed: _previousPage,
+                              ),
+                            ),
+                            Positioned(
+                              right: 10,
+                              top: MediaQuery.of(context).size.height / 2 - 290,
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: azulEuro,
+                                  size: 20,
+                                ),
+                                onPressed: _nextPage,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-      ],
-    );
+                ),
+              ),
+            ],
+          )
+        : Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: LinearProgressIndicator(
+                        value: pgr,
+                        color: azulEuro,
+                        backgroundColor: Colors.grey,
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        minHeight: 20,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      "${(pgr * 100).toStringAsFixed(1)}%",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: azulEuro,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+              isDesktop
+                  ? Container(
+                      width: videoWidth,
+                      height: videoHeight,
+                      child: isInitializing
+                          ? Center(child: progressSkin(30))
+                          : FittedBox(
+                              fit: BoxFit.contain,
+                              child: SizedBox(
+                                width: videoController.value.size.width,
+                                height: videoController.value.size.height,
+                                child: CustomVideoPlayer(
+                                  customVideoPlayerController:
+                                      CustomVideoPlayerController(
+                                    context: context,
+                                    videoPlayerController: videoController,
+                                    customVideoPlayerSettings:
+                                        _customVideoPlayerSettings =
+                                            const CustomVideoPlayerSettings(
+                                      showFullscreenButton:
+                                          true, // Habilita o botão fullscreen
+                                      showSeekButtons: true,
+                                    ),
+                                    additionalVideoSources: {
+                                      "240p": _videoPlayerController1,
+                                      "480p": _videoPlayerController2,
+                                      "720p": _videoPlayerController3,
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                    )
+                  : Expanded(
+                      child: isInitializing
+                          ? Center(child: progressSkin(30))
+                          : CustomVideoPlayer(
+                              customVideoPlayerController:
+                                  CustomVideoPlayerController(
+                                context: context,
+                                videoPlayerController: videoController,
+                                customVideoPlayerSettings:
+                                    _customVideoPlayerSettings =
+                                        const CustomVideoPlayerSettings(
+                                  showFullscreenButton:
+                                      true, // Habilita o botão fullscreen
+                                  showSeekButtons: true,
+                                ),
+                                additionalVideoSources: {
+                                  "240p": _videoPlayerController1,
+                                  "480p": _videoPlayerController2,
+                                  "720p": _videoPlayerController3,
+                                },
+                              ),
+                            ),
+                    ),
+              SizedBox(height: 12),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16.0),
+                    color: cinza,
+                  ),
+                  child: PageView(
+                    children: perguntas.map((pergunta) {
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Text(
+                              pergunta.enunciado,
+                              style:
+                                  TextStyle(fontSize: 15, color: Colors.black),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: pergunta.ops.length,
+                              itemBuilder: (context, index) {
+                                bool isSelected =
+                                    pergunta.selectedOptionIndex == index;
+                                bool isCorrectOption =
+                                    pergunta.ops[index].opcao ==
+                                        pergunta.respostaCorreta;
+
+                                return ListTile(
+                                  title: TextButton(
+                                    style: ButtonStyle(
+                                      backgroundColor: WidgetStateProperty.all(
+                                        isSelected
+                                            ? (pergunta.isCorrect! &&
+                                                    isCorrectOption
+                                                ? Colors.green
+                                                : !isCorrectOption
+                                                    ? Colors.red
+                                                    : azulEuro)
+                                            : azulEuro,
+                                      ),
+                                      shape: WidgetStateProperty.all(
+                                        RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(18.0),
+                                        ),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      pergunta.ops[index].texto,
+                                      style: TextStyle(
+                                          fontSize: 15, color: Colors.white),
+                                    ),
+                                    onPressed: pergunta.isAnswered
+                                        ? null
+                                        : () {
+                                            setState(() {
+                                              pgr += (4 / 1000);
+                                              pergunta.selectedOptionIndex =
+                                                  index;
+                                              pergunta.isAnswered = true;
+                                              pergunta.isCorrect =
+                                                  pergunta.checkAnswer(index);
+                                              if (pergunta.isCorrect!) {
+                                                pts += 1;
+                                                qtdCertas += 1;
+                                              }
+                                              qtdRespondidas += 1;
+                                              pgrEnv = (pgr * 100);
+                                              respondidas.add(new Resposta(
+                                                  idColaborador: idUser,
+                                                  idPergunta: pergunta.id,
+                                                  resposta: pergunta
+                                                      .ops[index].opcao));
+                                              verificarMudanca();
+                                            });
+                                          },
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ],
+          );
   }
 }
+
 class Opcao {
   String texto;
   String opcao;
@@ -841,5 +905,3 @@ class Resposta {
     };
   }
 }
-
-

@@ -1,3 +1,4 @@
+import 'package:eurointegrate_app/pages/ranking_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:eurointegrate_app/pages/conquistas_screen.dart';
 import 'package:eurointegrate_app/pages/guia.dart';
@@ -26,7 +27,8 @@ class _MainScreenState extends State<MainScreen> {
       VideoScreen(token: widget.token, id: widget.id,),
       Perfil(token: widget.token, id: widget.id,),
       GuiaScreen(token: widget.token, id: widget.id,),
-      ConquistasScreen(token: widget.token,),
+      ConquistasScreen(token: widget.token, id: widget.id,),
+      RankingPage(token: widget.token, isAdmin: false)
     ];
 
     return Scaffold(

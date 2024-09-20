@@ -13,9 +13,9 @@ class EditarAvatar extends StatelessWidget {
   final int id;
   EditarAvatar({super.key, required this.token, required this.pontos, required this.id});
 
-  Future<void> _save(String avatar) async {
+  Future<void> _save(String avatar, String avatarSVG) async {
   var url = Uri.parse('$urlAPI/colaboradores/avatar/$id');
-  var body = {"avatar": avatar};
+  var body = {"avatar": avatar, "avatarSVG": avatarSVG};
   var jsonBody = jsonEncode(body);
   http.Response? response;
 
@@ -76,7 +76,7 @@ class EditarAvatar extends StatelessWidget {
                       ],
                     ),
                     Spacer(),
-                    AvatarMakerSaveWidget(onTap: () async {_save(await AvatarMakerController.getJsonOptions());},),
+                    AvatarMakerSaveWidget(onTap: () async {_save(await AvatarMakerController.getJsonOptions(), await AvatarMakerController.getAvatarSVG());},),
                     AvatarMakerResetWidget(),
                   ],
                 ),

@@ -22,6 +22,7 @@ class BottomNavBarAdmin extends StatelessWidget {
           bottomItem(const Icon(FontAwesomeIcons.squarePlus), 'Onboarding'),
           bottomItem(const Icon(FontAwesomeIcons.listCheck), 'Lista Onboarding'),
           bottomItem(const Icon(FontAwesomeIcons.chartPie), 'Dashboards'),
+          bottomItem(const Icon(FontAwesomeIcons.medal), 'Ranking'),
       ],
       selectedItemColor: amareloEuro,
       unselectedItemColor: cinza,

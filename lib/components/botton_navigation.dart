@@ -1,5 +1,6 @@
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -21,6 +22,7 @@ class BottomNavBar extends StatelessWidget {
           bottomItem(Icons.person, 'Perfil'),
           bottomItem(Icons.menu_book_rounded, 'Guia'),
           bottomItem(Icons.emoji_events, 'Conquistas'),
+          bottomItemD(const Icon(FontAwesomeIcons.medal), 'Ranking'),
       ],
       selectedItemColor: azulEuro,
       unselectedItemColor: cinza,
@@ -34,6 +36,13 @@ class BottomNavBar extends StatelessWidget {
 BottomNavigationBarItem bottomItem(IconData icon, String label){
   return BottomNavigationBarItem(
           icon: Icon(icon),
+          label: label,
+        );
+}
+
+BottomNavigationBarItem bottomItemD(Icon icon, String label){
+  return BottomNavigationBarItem(
+          icon: icon,
           label: label,
         );
 }

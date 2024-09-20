@@ -5,13 +5,11 @@ import 'package:flutter/material.dart';
 class LinearDash extends StatelessWidget {
   final String selectedYear;
   final Map<String, Map<String, double>> progressoMes;
-  final bool msgEmpty;
   final Color cor;
 
   LinearDash({
     required this.selectedYear,
     required this.progressoMes,
-    this.msgEmpty = false,
     required this.cor,
   });
 

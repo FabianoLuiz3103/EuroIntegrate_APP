@@ -4,6 +4,7 @@ import 'package:eurointegrate_app/pages/admin/components/bottom_navigation_adm.d
 import 'package:eurointegrate_app/pages/admin/dashs_integracao.dart';
 import 'package:eurointegrate_app/pages/admin/home_admin.dart';
 import 'package:eurointegrate_app/pages/admin/listagem_integracao.dart';
+import 'package:eurointegrate_app/pages/ranking_screen.dart';
 import 'package:flutter/material.dart';
 
 class MainScreenAdmin extends StatefulWidget {
@@ -28,6 +29,7 @@ class _MainScreenAdminState extends State<MainScreenAdmin> {
       CadastroOnboardingScreen(token: widget.token, id: widget.id,),
       ListagemIntegracao(token: widget.token,),
       DashsIntegracaoScreen(token: widget.token,),
+      RankingPage(token: widget.token, isAdmin: true)
     ];
 
     return Scaffold(

@@ -21,7 +21,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _checkConnectivity() async {
     var result = await Connectivity().checkConnectivity();
-    if (result == ConnectivityResult.mobile || result == ConnectivityResult.wifi) {
+    if (result == ConnectivityResult.mobile ||
+        result == ConnectivityResult.wifi) {
       setState(() {
         isConnected = true;
       });
@@ -34,39 +35,117 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _navigateToLogin() {
-    Timer(const Duration(seconds: 3), () {
-       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>  const Login()
-       ));
+    Timer(const Duration(seconds: 4), () {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => const Login()));
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    const desktopWidthThreshold = 800.0;
+    final isDesktop = screenWidth > desktopWidthThreshold;
     return Scaffold(
       backgroundColor: azulEuro,
-      body: Center(
-        child: isConnected
-            ? Column(
-              children: [
-                Image.asset(
-                        "images/lg_branco.png",
-                        fit: BoxFit.contain,
-                      ),
-                progressSkinIni(30)
-              ],
-            ) // Loading spinner
-            : const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.wifi_off, size: 100, color: Colors.white),
-                  SizedBox(height: 20),
-                  Text('Sem conexão com a internet', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold)),
-                ],
-              ),
-      ),
+      body: isDesktop
+          ? Center(
+              child: isConnected
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Stack(
+                          alignment:
+                              Alignment.center, 
+                          children: [
+                            Positioned(
+                              child:   Image.asset(
+                              "images/lg_branco.png",
+                              fit: BoxFit
+                                  .contain, 
+                              height: 350.0, 
+                              width: 350.0, 
+                            ),),
+                          
+                            const Positioned(
+                              top:250, 
+                              left: 20, 
+                              child: Text(
+                                "O Caminho para uma Integração Eficiente.",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        progressSkinIni(30)
+                      ],
+                    )
+                  : const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.wifi_off, size: 100, color: Colors.white),
+                        SizedBox(height: 20),
+                        Text('Sem conexão com a internet',
+                            style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+            )
+          : Center(
+              child: isConnected
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Stack(
+                          alignment:
+                              Alignment.center, 
+                          children: [
+                            Positioned(
+                              child:   Image.asset(
+                              "images/lg_branco.png",
+                              fit: BoxFit
+                                  .contain, 
+                              
+                            ),),
+                          
+                            const Positioned(
+                              top:250, 
+                             // left: 20, 
+                              child: Text(
+                                "O Caminho para uma Integração Eficiente.",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        progressSkinIni(30)
+                      ],
+                    )
+                  : const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.wifi_off, size: 100, color: Colors.white),
+                        SizedBox(height: 20),
+                        Text('Sem conexão com a internet',
+                            style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+            ),
     );
   }
 }

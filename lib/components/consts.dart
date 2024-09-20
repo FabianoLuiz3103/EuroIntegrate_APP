@@ -18,4 +18,4 @@ String formatarData(String data) {
   return DateFormat('dd/MM/yy').format(dateTime);
 }
 //const String urlAPI = "https://eurointegrate-api.azurewebsites.net";
-const String urlAPI = "https://eleven-mirrors-unite.loca.lt";
+const String urlAPI = "https://long-otters-grin.loca.lt";

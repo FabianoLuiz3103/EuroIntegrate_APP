@@ -12,7 +12,8 @@ import 'package:intl/intl.dart';
 class CadastroOnboardingScreen extends StatefulWidget {
   final String token;
   final int id;
-  const CadastroOnboardingScreen({super.key, required this.token, required this.id});
+  const CadastroOnboardingScreen(
+      {super.key, required this.token, required this.id});
 
   @override
   State<CadastroOnboardingScreen> createState() =>
@@ -357,7 +358,6 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
             if (isLoading)
               Positioned.fill(
                 child: Container(
-                
                   child: Center(
                     child: progressSkin(50),
                   ),

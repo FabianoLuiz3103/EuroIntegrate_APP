@@ -80,9 +80,9 @@ class BannerAdmin extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(icon, size: 50),
-                    SizedBox(width: 15,),
+                    const SizedBox(width: 30,),
                     Padding(
-                      padding: const EdgeInsets.only(top: 35),
+                      padding: isDesktop ? EdgeInsets.only(top: 15) : EdgeInsets.only(top: 30),
                       child: titulo,
                     ),
                   ],
@@ -90,9 +90,10 @@ class BannerAdmin extends StatelessWidget {
               )
                : Expanded(
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(icon, size: 50),
+                    const SizedBox(width: 30,),
                     Padding(
                       padding: const EdgeInsets.only(top: 35),
                       child: titulo,

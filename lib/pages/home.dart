@@ -5,12 +5,11 @@ import 'package:eurointegrate_app/components/cards.dart';
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/components/cont.dart';
 import 'package:eurointegrate_app/components/progress.dart';
+import 'package:eurointegrate_app/model/conquista.dart';
 import 'package:eurointegrate_app/pages/chatbot/bot.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
 
@@ -27,13 +26,11 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   late String _jwt;
-  late int _id;
    late Future<Map?> _futureData;
   @override
   void initState() {
     super.initState();
     _jwt = widget.token;
-    _id = widget.id;
     _futureData = _fetchData();
   }
 
@@ -68,6 +65,20 @@ class _HomeState extends State<Home> {
       _futureData = _fetchData(); // Atualiza o futuro e força a reconstrução
     });
   }
+
+
+ int quantidadeConquistas(int pontuacao) {
+  var conquistas = getConquistas(); // Use await aqui
+  var contador = 0; // Inicializa o contador
+
+  for (var conquista in conquistas) { // Itera sobre as conquistas
+    if (pontuacao >= conquista.pontos) {
+      contador++; // Incrementa o contador
+    }
+  }
+  return contador;
+ }
+
 
   
 
@@ -165,7 +176,7 @@ class _HomeState extends State<Home> {
                                   size: 40,
                                 ),
                                 textLeft: const Text("CONQUISTAS"),
-                                numberLeft: 5.0,
+                                numberLeft: quantidadeConquistas(_dados["pontuacao"]).toDouble(),
                                 iconRight: const Icon(
                                   Icons.star,
                                   color: Colors.yellow,
