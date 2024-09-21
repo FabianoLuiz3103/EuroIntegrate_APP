@@ -1,5 +1,6 @@
 // import 'package:eurointegrate_app/pages/login.dart';
 import 'package:eurointegrate_app/components/consts.dart';
+import 'package:eurointegrate_app/pages/admin/cadastro_onboarding.dart';
 import 'package:eurointegrate_app/pages/admin/dashs_integracao.dart';
 import 'package:eurointegrate_app/pages/admin/home_admin.dart';
 import 'package:eurointegrate_app/pages/home.dart';
@@ -34,10 +35,10 @@ class MyApp extends StatelessWidget {
     GlobalCupertinoLocalizations.delegate,
   ],
   supportedLocales: const [
-     Locale('pt', 'BR'), // Português do Brasil
+     Locale('pt', 'BR'), 
 
   ],
-      home: SplashScreen()
+    home: SplashScreen()
     );
   }
 }

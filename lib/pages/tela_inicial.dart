@@ -118,12 +118,15 @@ class _SplashScreenState extends State<SplashScreen> {
                             const Positioned(
                               top:250, 
                              // left: 20, 
-                              child: Text(
-                                "O Caminho para uma Integração Eficiente.",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 18),
+                                child: Text(
+                                  "O Caminho para uma Integração Eficiente.",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),

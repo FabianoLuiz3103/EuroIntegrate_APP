@@ -50,7 +50,9 @@ class _HomeState extends State<Home> {
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        List<int> bytes = response.bodyBytes;
+        String decodedBody = utf8.decode(bytes);
+        return jsonDecode(decodedBody);
       } else {
         return null;
       }

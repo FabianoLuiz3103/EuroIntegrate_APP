@@ -131,6 +131,9 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+      final screenWidth = MediaQuery.of(context).size.width;
+    const desktopWidthThreshold = 800.0;
+    final isDesktop = screenWidth > desktopWidthThreshold;
     return Scaffold(
       body: SingleChildScrollView(
         child: Stack(
@@ -155,10 +158,18 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
                       height: 40,
                     ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
-                      child: Row(
+                      padding:  isDesktop ? const EdgeInsets.fromLTRB(120, 8, 120, 8)  : const EdgeInsets.fromLTRB(18, 8, 18, 8),
+                      child: 
+
+                       Row(
                         children: [
-                          const Expanded(
+                         isDesktop ?
+                         const  Text(
+                            "DEPARTAMENTO ",
+                            style: TextStyle(
+                                fontSize: 15, color: Color(0xFF757575)),
+                          )
+                          : const Expanded(
                               child: Text(
                             "DEPARTAMENTO ",
                             style: TextStyle(
@@ -238,6 +249,7 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
                                   validator: (value) => value == null
                                       ? 'Departamento é obrigatório'
                                       : null,
+                                  
                                 ),
                               );
                             },
@@ -249,7 +261,7 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
                       height: 30,
                     ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
+                      padding: isDesktop ? const EdgeInsets.fromLTRB(120, 8, 120, 8) : const EdgeInsets.fromLTRB(18, 8, 18, 8),
                       child: Row(
                         children: [
                           campoOnboarding(
@@ -282,7 +294,7 @@ class _CadastroOnboardingScreenState extends State<CadastroOnboardingScreen> {
                       height: 30,
                     ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
+                      padding:  isDesktop ? const EdgeInsets.fromLTRB(120, 8, 120, 8) : const EdgeInsets.fromLTRB(18, 8, 18, 8),
                       child: Row(
                         children: [
                           campoOnboarding(_dataFim, () {

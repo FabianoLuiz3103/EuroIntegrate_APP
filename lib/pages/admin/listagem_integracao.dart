@@ -370,7 +370,7 @@ class Departamento {
   factory Departamento.fromJson(Map<String, dynamic> json) {
     return Departamento(
       id: json['id'],
-      nome: json['nome'],
+      nome: json['nome'] ?? '',
     );
   }
 
@@ -378,14 +378,14 @@ class Departamento {
 
 class Rh {
   int id;
-  String email;
+  //String email;
 
-  Rh({required this.id, required this.email});
+  Rh({required this.id});
 
   factory Rh.fromJson(Map<String, dynamic> json) {
     return Rh(
       id: json['id'],
-      email: json['email'],
+     // email: json['cpf'],
     );
   }
 

@@ -36,8 +36,10 @@ class _PerfilState extends State<Perfil> {
       );
 
       if (response.statusCode == 200) {
+        List<int> bytes = response.bodyBytes;
+        String decodedBody = utf8.decode(bytes);
         setState(() {
-          userData = jsonDecode(response.body);
+          userData = jsonDecode(decodedBody);
         });
       } else {
         throw Exception('Failed to load data');
