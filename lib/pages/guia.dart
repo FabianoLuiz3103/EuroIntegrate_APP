@@ -361,42 +361,47 @@ class _GuiaScreenState extends State<GuiaScreen> {
                             i + 1),
                     ],
                   ),
-                 isDesktop ? Positioned(
-                    left: 10,
-                    top: MediaQuery.of(context).size.height / 2 - 20,
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.arrow_back_ios,
-                        color: azulEuro,
-                        size: 30,
-                      ),
-                      onPressed: () {
-                        _pageController.previousPage(
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                    ),
-                  ) : SizedBox(),
-                  isDesktop ? Positioned(
-                    right: 10,
-                    top: MediaQuery.of(context).size.height / 2 - 20,
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.arrow_forward_ios,
-                        color: azulEuro,
-                        size: 30,
-                      ),
-                      onPressed: () {
-                        _pageController.nextPage(
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                    ),
-                  ) : SizedBox(),
+                  isDesktop
+                      ? Positioned(
+                          left: 10,
+                          top: MediaQuery.of(context).size.height / 2 - 20,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.arrow_back_ios,
+                              color: azulEuro,
+                              size: 30,
+                            ),
+                            onPressed: () {
+                              _pageController.previousPage(
+                                duration: Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                            },
+                          ),
+                        )
+                      : SizedBox(),
+                  isDesktop
+                      ? Positioned(
+                          right: 10,
+                          top: MediaQuery.of(context).size.height / 2 - 20,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.arrow_forward_ios,
+                              color: azulEuro,
+                              size: 30,
+                            ),
+                            onPressed: () {
+                              _pageController.nextPage(
+                                duration: Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                            },
+                          ),
+                        )
+                      : SizedBox(),
                 ]),
               ),
+              
             );
           }
         },
@@ -438,7 +443,215 @@ class _GuiaScreenState extends State<GuiaScreen> {
     }
 
     return isDesktop
-        ? Column(
+        ? SingleChildScrollView(
+          child: Column(
+              children: [
+                // Texto de porcentagem
+                // Barra de progresso
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: LinearProgressIndicator(
+                          value: pgr,
+                          color: azulEuro,
+                          backgroundColor: Colors.grey,
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          minHeight: 20,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 8,
+                      ),
+                      Text(
+                        "${(pgr * 100).toStringAsFixed(1)}%",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: azulEuro,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 30,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(30.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.35,
+                        height: MediaQuery.of(context).size.height * 0.55,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16.0),
+                          color: cinza,
+                        ),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  nome,
+                                  style: TextStyle(
+                                      fontSize: 25, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  descricao,
+                                  style: TextStyle(fontSize: 18),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.35,
+                        height: MediaQuery.of(context).size.height * 0.55,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16.0),
+                          color: cinza,
+                        ),
+                        child: Stack(
+                          children: [
+                            PageView(
+                              controller: _pageController,
+                              onPageChanged: (index) {
+                                setState(() {
+                                  _currentPage = index;
+                                });
+                              },
+                              children: perguntas.map((pergunta) {
+                                return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Text(
+                                        pergunta.enunciado,
+                                        style: TextStyle(
+                                            fontSize: 15, color: Colors.black),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: ListView.builder(
+                                        itemCount: pergunta.ops.length,
+                                        itemBuilder: (context, index) {
+                                          bool isCorrect = false;
+                                          Color buttonColor = azulEuro;
+          
+                                          if (pergunta.selectedOptionIndex ==
+                                              index) {
+                                            isCorrect =
+                                                pergunta.checkAnswer(index);
+                                            buttonColor = isCorrect
+                                                ? Colors.green
+                                                : Colors.red;
+                                          }
+          
+                                          return ListTile(
+                                            title: TextButton(
+                                              style: ButtonStyle(
+                                                backgroundColor:
+                                                    WidgetStateProperty.all(
+                                                        buttonColor),
+                                                shape: WidgetStateProperty.all(
+                                                  RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            18.0),
+                                                  ),
+                                                ),
+                                              ),
+                                              child: Text(
+                                                pergunta.ops[index].texto,
+                                                style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: Colors.white),
+                                              ),
+                                              onPressed: pergunta.isAnswered
+                                                  ? null
+                                                  : () {
+                                                      setState(() {
+                                                        pgr += (4 / 1000);
+                                                        pergunta.selectedOptionIndex =
+                                                            index;
+                                                        pergunta.isAnswered =
+                                                            true;
+                                                        pergunta.isCorrect =
+                                                            pergunta.checkAnswer(
+                                                                index);
+                                                        if (pergunta.isCorrect!) {
+                                                          pts += 1;
+                                                          qtdCertas += 1;
+                                                        }
+                                                        qtdRespondidas += 1;
+                                                        pgrEnv = (pgr * 100);
+                                                        respondidas.add(
+                                                            new Resposta(
+                                                                idColaborador:
+                                                                    idUser,
+                                                                idPergunta:
+                                                                    pergunta.id,
+                                                                resposta: pergunta
+                                                                    .ops[index]
+                                                                    .opcao));
+                                                        verificarMudanca();
+                                                      });
+                                                    },
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                            Positioned(
+                              left: 10,
+                              top: 0,
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.arrow_back_ios,
+                                  color: azulEuro,
+                                  size: 20,
+                                ),
+                                onPressed: _previousPage,
+                              ),
+                            ),
+                            Positioned(
+                              right: 10,
+                              top: 0,
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: azulEuro,
+                                  size: 20,
+                                ),
+                                onPressed: _nextPage,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+               
+              ],
+            ),
+        )
+        : Column(
             children: [
               // Texto de porcentagem
               // Barra de progresso
@@ -470,320 +683,126 @@ class _GuiaScreenState extends State<GuiaScreen> {
                   ],
                 ),
               ),
-              SizedBox(
-                height: 30,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(30.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.35,
-                      height: MediaQuery.of(context).size.height * 0.55,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16.0),
-                        color: cinza,
-                      ),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                nome,
-                                style: TextStyle(
-                                    fontSize: 25, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                descricao,
-                                style: TextStyle(fontSize: 18),
-                              ),
-                            ),
-                          ],
+              // SizedBox(height: 12),
+              Expanded(
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.95,
+                  height: MediaQuery.of(context).size.height * 0.50,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16.0),
+                    color: cinza,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            nome,
+                            style: TextStyle(
+                                fontSize: 25, fontWeight: FontWeight.bold),
+                          ),
                         ),
-                      ),
-                    ),
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.35,
-                      height: MediaQuery.of(context).size.height * 0.55,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16.0),
-                        color: cinza,
-                      ),
-                      child: Stack(
-                        children: [
-                          PageView(
-                            controller: _pageController,
-                            onPageChanged: (index) {
-                              setState(() {
-                                _currentPage = index;
-                              });
-                            },
-                            children: perguntas.map((pergunta) {
-                              return Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(12.0),
-                                    child: Text(
-                                      pergunta.enunciado,
-                                      style: TextStyle(
-                                          fontSize: 15, color: Colors.black),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: ListView.builder(
-                                      itemCount: pergunta.ops.length,
-                                      itemBuilder: (context, index) {
-                                        bool isCorrect = false;
-                                        Color buttonColor = azulEuro;
-
-                                        if (pergunta.selectedOptionIndex ==
-                                            index) {
-                                          isCorrect =
-                                              pergunta.checkAnswer(index);
-                                          buttonColor = isCorrect
-                                              ? Colors.green
-                                              : Colors.red;
-                                        }
-
-                                        return ListTile(
-                                          title: TextButton(
-                                            style: ButtonStyle(
-                                              backgroundColor:
-                                                  WidgetStateProperty.all(
-                                                      buttonColor),
-                                              shape: WidgetStateProperty.all(
-                                                RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          18.0),
-                                                ),
-                                              ),
-                                            ),
-                                            child: Text(
-                                              pergunta.ops[index].texto,
-                                              style: TextStyle(
-                                                  fontSize: 15,
-                                                  color: Colors.white),
-                                            ),
-                                            onPressed: pergunta.isAnswered
-                                                ? null
-                                                : () {
-                                                    setState(() {
-                                                      pgr += (4 / 1000);
-                                                      pergunta.selectedOptionIndex =
-                                                          index;
-                                                      pergunta.isAnswered =
-                                                          true;
-                                                      pergunta.isCorrect =
-                                                          pergunta.checkAnswer(
-                                                              index);
-                                                      if (pergunta.isCorrect!) {
-                                                        pts += 1;
-                                                        qtdCertas += 1;
-                                                      }
-                                                      qtdRespondidas += 1;
-                                                      pgrEnv = (pgr * 100);
-                                                      respondidas.add(
-                                                          new Resposta(
-                                                              idColaborador:
-                                                                  idUser,
-                                                              idPergunta:
-                                                                  pergunta.id,
-                                                              resposta: pergunta
-                                                                  .ops[index]
-                                                                  .opcao));
-                                                      verificarMudanca();
-                                                    });
-                                                  },
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }).toList(),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            descricao,
+                            style: TextStyle(fontSize: 18),
                           ),
-                          Positioned(
-                            left: 10,
-                            top: MediaQuery.of(context).size.height / 2 - 290,
-                            child: IconButton(
-                              icon: Icon(
-                                Icons.arrow_back_ios,
-                                color: azulEuro,
-                                size: 20,
-                              ),
-                              onPressed: _previousPage,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 12),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16.0),
+                    color: cinza,
+                  ),
+                  child: PageView(
+                    children: perguntas.map((pergunta) {
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Text(
+                              pergunta.enunciado,
+                              style:
+                                  TextStyle(fontSize: 15, color: Colors.black),
+                              textAlign: TextAlign.center,
                             ),
                           ),
-                          Positioned(
-                            right: 10,
-                            top: MediaQuery.of(context).size.height / 2 - 290,
-                            child: IconButton(
-                              icon: Icon(
-                                Icons.arrow_forward_ios,
-                                color: azulEuro,
-                                size: 20,
-                              ),
-                              onPressed: _nextPage,
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: pergunta.ops.length,
+                              itemBuilder: (context, index) {
+                                bool isCorrect = false;
+                                Color buttonColor = azulEuro;
+
+                                if (pergunta.selectedOptionIndex == index) {
+                                  isCorrect = pergunta.checkAnswer(index);
+                                  buttonColor =
+                                      isCorrect ? Colors.green : Colors.red;
+                                }
+
+                                return ListTile(
+                                  title: TextButton(
+                                    style: ButtonStyle(
+                                      backgroundColor:
+                                          WidgetStateProperty.all(buttonColor),
+                                      shape: WidgetStateProperty.all(
+                                        RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(18.0),
+                                        ),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      pergunta.ops[index].texto,
+                                      style: TextStyle(
+                                          fontSize: 15, color: Colors.white),
+                                    ),
+                                    onPressed: pergunta.isAnswered
+                                        ? null
+                                        : () {
+                                            setState(() {
+                                              pgr += (4 / 1000);
+                                              pergunta.selectedOptionIndex =
+                                                  index;
+                                              pergunta.isAnswered = true;
+                                              pergunta.isCorrect =
+                                                  pergunta.checkAnswer(index);
+                                              if (pergunta.isCorrect!) {
+                                                pts += 1;
+                                                qtdCertas += 1;
+                                              }
+                                              qtdRespondidas += 1;
+                                              pgrEnv = (pgr * 100);
+                                              respondidas.add(new Resposta(
+                                                  idColaborador: idUser,
+                                                  idPergunta: pergunta.id,
+                                                  resposta: pergunta
+                                                      .ops[index].opcao));
+                                              verificarMudanca();
+                                            });
+                                          },
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                  ],
+                      );
+                    }).toList(),
+                  ),
                 ),
-              )
-            ],
-          )
-        : Column(
-      children: [
-        // Texto de porcentagem
-        // Barra de progresso
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: LinearProgressIndicator(
-                  value: pgr,
-                  color: azulEuro,
-                  backgroundColor: Colors.grey,
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  minHeight: 20,
-                ),
-              ),
-              SizedBox(
-                width: 8,
-              ),
-              Text(
-                "${(pgr * 100).toStringAsFixed(1)}%",
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: azulEuro,
-                ),
-                textAlign: TextAlign.center,
               ),
             ],
-          ),
-        ),
-        // SizedBox(height: 12),
-        Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16.0),
-              color: cinza,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      nome,
-                      style:
-                          TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      descricao,
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: 12),
-        Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16.0),
-              color: cinza,
-            ),
-            child: PageView(
-              children: perguntas.map((pergunta) {
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Text(
-                        pergunta.enunciado,
-                        style: TextStyle(fontSize: 15, color: Colors.black),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: pergunta.ops.length,
-                        itemBuilder: (context, index) {
-                          bool isCorrect = false;
-                          Color buttonColor = azulEuro;
-
-                          if (pergunta.selectedOptionIndex == index) {
-                            isCorrect = pergunta.checkAnswer(index);
-                            buttonColor = isCorrect ? Colors.green : Colors.red;
-                          }
-
-                          return ListTile(
-                            title: TextButton(
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    WidgetStateProperty.all(buttonColor),
-                                shape: WidgetStateProperty.all(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(18.0),
-                                  ),
-                                ),
-                              ),
-                              child: Text(
-                                pergunta.ops[index].texto,
-                                style: TextStyle(
-                                    fontSize: 15, color: Colors.white),
-                              ),
-                              onPressed: pergunta.isAnswered
-                                  ? null
-                                  : ()  {
-                                      setState(() {
-                                       pgr += (4/1000);
-                                        pergunta.selectedOptionIndex = index;
-                                        pergunta.isAnswered = true;
-                                        pergunta.isCorrect = pergunta.checkAnswer(index);
-                                        if(pergunta.isCorrect!){
-                                          pts += 1;
-                                          qtdCertas+=1;
-                                        }
-                                        qtdRespondidas+=1;
-                                        pgrEnv = (pgr * 100);
-                                        respondidas.add(new Resposta(idColaborador: idUser, idPergunta: pergunta.id, resposta:  pergunta.ops[index].opcao));
-                                        verificarMudanca();
-                                      });
-                                    },
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-      ],
-    );
+          );
   }
 }
 
