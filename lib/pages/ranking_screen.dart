@@ -1,18 +1,14 @@
 import 'dart:convert';
 
-import 'package:avatar_maker/avatar_maker.dart';
 import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/components/progress.dart';
 import 'package:eurointegrate_app/pages/admin/components/banner.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:fluttermoji/fluttermoji.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:http/http.dart' as http;
-import 'package:get/get.dart';
 
 class RankingPage extends StatefulWidget {
   final String token;
@@ -24,24 +20,7 @@ class RankingPage extends StatefulWidget {
 }
 
 class _RankingPageState extends State<RankingPage> {
-  late Future<List<Departamento>?> _futureDepts;
-  Departamento? _departamentoSelecionado;
   late Future<List<Result>>? _results;
-
-  Future<List<Departamento>> fetchDepartamentos() async {
-    await Future.delayed(const Duration(seconds: 2));
-
-    List<Map<String, dynamic>> departamentosJson = [
-      {'id': 1, 'nome': 'Recursos Humanos'},
-      {'id': 2, 'nome': 'Financeiro'},
-      {'id': 3, 'nome': 'Tecnologia da Informação'},
-      {'id': 4, 'nome': 'Marketing'},
-    ];
-
-    return departamentosJson
-        .map((json) => Departamento.fromJson(json))
-        .toList();
-  }
 
   Future<List<Result>> _getResults() async {
     await Future.delayed(const Duration(seconds: 3));
@@ -74,7 +53,6 @@ class _RankingPageState extends State<RankingPage> {
   @override
   void initState() {
     super.initState();
-    _futureDepts = fetchDepartamentos();
     _results = _getResults();
   }
 
@@ -110,7 +88,7 @@ class _RankingPageState extends State<RankingPage> {
                     titulo: Text(
                       "ranking".toUpperCase(),
                       style:
-                          TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+                         const TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
                       overflow: TextOverflow.ellipsis,
                     ),
                     icon: FontAwesomeIcons.medal,
@@ -158,7 +136,7 @@ class _RankingPageState extends State<RankingPage> {
                     onPressed: () {
                       showConfirmacaoCadastroDetails(player, context);
                     },
-                    icon: Icon(Icons.arrow_forward_ios),
+                    icon: const Icon(Icons.arrow_forward_ios),
                   ),
                 ),
               ),
@@ -238,7 +216,7 @@ class PlayerWithAvatar {
 class Top3PlayersWidget extends StatefulWidget {
   final List<Result> top3;
 
-  const Top3PlayersWidget({
+  const Top3PlayersWidget({super.key, 
     required this.top3,
   });
 
@@ -295,7 +273,7 @@ class _Top3PlayersWidgetState extends State<Top3PlayersWidget> {
             ),
           )
         else
-          CircularProgressIndicator(), // Mostra um loader até o avatar carregar
+          progressSkin(15)
       ],
     );
   }
@@ -334,7 +312,7 @@ class TopPlayerWidget extends StatelessWidget {
 class AvatarPlayer extends StatefulWidget {
   final String avatar;
 
-  const AvatarPlayer({required this.avatar});
+  const AvatarPlayer({super.key, required this.avatar});
 
   @override
   _AvatarPlayerState createState() => _AvatarPlayerState();
@@ -419,7 +397,7 @@ String _toBrDate(DateTime date) {
                           height: 60,
                         ),
                       ),
-                      Divider(color: cinza),
+                      const Divider(color: cinza),
                       Center(
                         child: Column(
                           children: [
@@ -437,7 +415,7 @@ String _toBrDate(DateTime date) {
                           ],
                         ),
                       ),
-                      Divider(color: cinza),
+                      const Divider(color: cinza),
                       Center(
                         child: Column(
                           children: [
@@ -449,13 +427,13 @@ String _toBrDate(DateTime date) {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text('${snapshot.data!.pontuacao}'),
-                                Icon(Icons.star, color: Colors.amber),
+                                const Icon(Icons.star, color: Colors.amber),
                               ],
                             ),
                           ],
                         ),
                       ),
-                      Divider(color: cinza),
+                      const Divider(color: cinza),
                       Center(
                         child: Column(
                           children: [
@@ -468,7 +446,7 @@ String _toBrDate(DateTime date) {
                           ],
                         ),
                       ),
-                      Divider(color: cinza),
+                      const Divider(color: cinza),
                       Center(
                         child: Column(
                           children: [
@@ -480,7 +458,7 @@ String _toBrDate(DateTime date) {
                           ],
                         ),
                       ),
-                      Divider(color: cinza),
+                      const Divider(color: cinza),
                       Center(
                         child: Column(
                           children: [
