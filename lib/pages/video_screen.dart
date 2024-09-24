@@ -630,7 +630,7 @@ class _VideoScreenState extends State<VideoScreen> {
                             ),
                             Positioned(
                               left: 10,
-                              top: MediaQuery.of(context).size.height / 2 - 290,
+                              top: 0,
                               child: IconButton(
                                 icon: Icon(
                                   Icons.arrow_back_ios,
@@ -642,7 +642,7 @@ class _VideoScreenState extends State<VideoScreen> {
                             ),
                             Positioned(
                               right: 10,
-                              top: MediaQuery.of(context).size.height / 2 - 290,
+                              top: 0,
                               child: IconButton(
                                 icon: Icon(
                                   Icons.arrow_forward_ios,
