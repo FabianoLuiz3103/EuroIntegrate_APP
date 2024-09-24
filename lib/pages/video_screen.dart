@@ -383,26 +383,26 @@ class _VideoScreenState extends State<VideoScreen> {
                               },
                             ),
                           )
-                        : SizedBox(),
+                        : const SizedBox(),
                     isDesktop
                         ? Positioned(
                             right: 10,
                             top: MediaQuery.of(context).size.height / 2 - 20,
                             child: IconButton(
-                              icon: Icon(
+                              icon: const Icon(
                                 Icons.arrow_forward_ios,
                                 color: azulEuro,
                                 size: 30,
                               ),
                               onPressed: () {
                                 _pageController.nextPage(
-                                  duration: Duration(milliseconds: 300),
+                                  duration: const Duration(milliseconds: 300),
                                   curve: Curves.easeInOut,
                                 );
                               },
                             ),
                           )
-                        : SizedBox(),
+                        : const SizedBox(),
                   ],
                 ),
               ),
@@ -435,7 +435,7 @@ class _VideoScreenState extends State<VideoScreen> {
     void _nextPage() {
       if (_currentPage < perguntas.length - 1) {
         _pageController.nextPage(
-          duration: Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
         setState(() {
@@ -447,7 +447,7 @@ class _VideoScreenState extends State<VideoScreen> {
     void _previousPage() {
       if (_currentPage > 0) {
         _pageController.previousPage(
-          duration: Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
         setState(() {
@@ -551,7 +551,7 @@ class _VideoScreenState extends State<VideoScreen> {
                                       padding: const EdgeInsets.all(12.0),
                                       child: Text(
                                         pergunta.enunciado,
-                                        style: TextStyle(
+                                        style:const  TextStyle(
                                             fontSize: 15, color: Colors.black),
                                         textAlign: TextAlign.center,
                                       ),
@@ -589,12 +589,6 @@ class _VideoScreenState extends State<VideoScreen> {
                                                   ),
                                                 ),
                                               ),
-                                              child: Text(
-                                                pergunta.ops[index].texto,
-                                                style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: Colors.white),
-                                              ),
                                               onPressed: pergunta.isAnswered
                                         ? null
                                         : () {
@@ -619,6 +613,12 @@ class _VideoScreenState extends State<VideoScreen> {
                                               verificarMudanca();
                                             });
                                           },
+                                              child: Text(
+                                                pergunta.ops[index].texto,
+                                                style: const TextStyle(
+                                                    fontSize: 15,
+                                                    color: Colors.white),
+                                              ),
                                             ),
                                           );
                                         },
@@ -632,7 +632,7 @@ class _VideoScreenState extends State<VideoScreen> {
                               left: 10,
                               top: 0,
                               child: IconButton(
-                                icon: Icon(
+                                icon: const Icon(
                                   Icons.arrow_back_ios,
                                   color: azulEuro,
                                   size: 20,
@@ -644,7 +644,7 @@ class _VideoScreenState extends State<VideoScreen> {
                               right: 10,
                               top: 0,
                               child: IconButton(
-                                icon: Icon(
+                                icon: const Icon(
                                   Icons.arrow_forward_ios,
                                   color: azulEuro,
                                   size: 20,
@@ -676,7 +676,7 @@ class _VideoScreenState extends State<VideoScreen> {
                         minHeight: 20,
                       ),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
                       "${(pgr * 100).toStringAsFixed(1)}%",
                       style: const TextStyle(
@@ -690,7 +690,7 @@ class _VideoScreenState extends State<VideoScreen> {
                 ),
               ),
               isDesktop
-                  ? Container(
+                  ? SizedBox(
                       width: videoWidth,
                       height: videoHeight,
                       child: isInitializing
@@ -796,11 +796,6 @@ class _VideoScreenState extends State<VideoScreen> {
                                         ),
                                       ),
                                     ),
-                                    child: Text(
-                                      pergunta.ops[index].texto,
-                                      style: TextStyle(
-                                          fontSize: 15, color: Colors.white),
-                                    ),
                                     onPressed: pergunta.isAnswered
                                         ? null
                                         : () {
@@ -825,6 +820,11 @@ class _VideoScreenState extends State<VideoScreen> {
                                               verificarMudanca();
                                             });
                                           },
+                                    child: Text(
+                                      pergunta.ops[index].texto,
+                                      style: const TextStyle(
+                                          fontSize: 15, color: Colors.white),
+                                    ),
                                   ),
                                 );
                               },
