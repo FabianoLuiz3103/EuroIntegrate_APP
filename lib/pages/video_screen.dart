@@ -105,7 +105,7 @@ class _VideoScreenState extends State<VideoScreen> {
         throw Exception('Failed to load data');
       }
     } catch (e) {
-      print("Erro na requisição: $e");
+      //print("Erro na requisição: $e");
       return [];
     }
   }
@@ -128,15 +128,15 @@ class _VideoScreenState extends State<VideoScreen> {
                 .toList();
             perguntasList.add(perguntasSublista);
           } else {
-            print('O valor de "perguntas" não é uma lista.');
+           // print('O valor de "perguntas" não é uma lista.');
           }
         } else {
-          print('Item não contém a chave "perguntas" ou não é um mapa.');
+         // print('Item não contém a chave "perguntas" ou não é um mapa.');
         }
       }
       return perguntasList;
     } else {
-      print('Dados não disponíveis ou estão vazios.');
+     // print('Dados não disponíveis ou estão vazios.');
       return [];
     }
   }
@@ -259,7 +259,7 @@ class _VideoScreenState extends State<VideoScreen> {
     videoController.addListener(() {
       if (videoController.value.isPlaying) {
         if (_videoTimers[videoIndex] == null) {
-          _videoTimers[videoIndex] = Timer.periodic(Duration(seconds: 1), (_) {
+          _videoTimers[videoIndex] = Timer.periodic(const Duration(seconds: 1), (_) {
             if (videoController.value.isPlaying &&
                 !videoController.value.isBuffering) {
               setState(() {
@@ -295,7 +295,7 @@ class _VideoScreenState extends State<VideoScreen> {
     // Use Future.microtask to ensure that these functions run in the background.
     if (mudanca) {
       Future.microtask(() async {
-        print(pgrEnv);
+        //print(pgrEnv);
         await apiService.enviarDados(pgrEnv, pts, qtdRespondidas, qtdCertas);
         await apiService.enviarRespostas(respondidas);
       });
@@ -312,7 +312,7 @@ class _VideoScreenState extends State<VideoScreen> {
     final PageController _pageController = PageController();
     return Scaffold(
       appBar: AppBar(
-        title: Text("Trilha institucional"),
+        title: const Text("Trilha institucional"),
         backgroundColor: azulEuro,
       ),
       body: FutureBuilder<List<List<Pergunta>>>(
@@ -326,17 +326,17 @@ class _VideoScreenState extends State<VideoScreen> {
             return Center(
                 child: Column(
               children: [
-                Text("Erro ao carregar os dados..."),
+                const Text("Erro ao carregar os dados..."),
                 ElevatedButton(
                   onPressed: _retryFetchData,
-                  child: Text("Tente novamente"),
-                  style: ButtonStyle(
+                  style: const ButtonStyle(
                       backgroundColor: WidgetStatePropertyAll(azulEuro)),
+                  child: const Text("Tente novamente"),
                 )
               ],
             ));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('Nenhuma pergunta disponível.'));
+            return const Center(child: Text('Nenhuma pergunta disponível.'));
           } else {
             List<List<Pergunta>> perguntasList = snapshot.data!;
             List<CachedVideoPlayerController> controlles = [
@@ -346,7 +346,7 @@ class _VideoScreenState extends State<VideoScreen> {
             ];
             int controllerCount = controlles.length;
             return Center(
-              child: Container(
+              child: SizedBox(
                 width: isDesktop
                     ? MediaQuery.of(context).size.width * 1
                     : MediaQuery.of(context).size.width * 0.90,
@@ -370,14 +370,14 @@ class _VideoScreenState extends State<VideoScreen> {
                             left: 10,
                             top: MediaQuery.of(context).size.height / 2 - 20,
                             child: IconButton(
-                              icon: Icon(
+                              icon: const Icon(
                                 Icons.arrow_back_ios,
                                 color: azulEuro,
                                 size: 30,
                               ),
                               onPressed: () {
                                 _pageController.previousPage(
-                                  duration: Duration(milliseconds: 300),
+                                  duration: const Duration(milliseconds: 300),
                                   curve: Curves.easeInOut,
                                 );
                               },

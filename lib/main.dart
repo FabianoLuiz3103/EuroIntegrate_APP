@@ -1,12 +1,5 @@
 // import 'package:eurointegrate_app/pages/login.dart';
 import 'package:eurointegrate_app/components/consts.dart';
-import 'package:eurointegrate_app/pages/admin/cadastro_onboarding.dart';
-import 'package:eurointegrate_app/pages/admin/dashs_integracao.dart';
-import 'package:eurointegrate_app/pages/admin/home_admin.dart';
-import 'package:eurointegrate_app/pages/home.dart';
-import 'package:eurointegrate_app/pages/login.dart';
-import 'package:eurointegrate_app/pages/perfil.dart';
-import 'package:eurointegrate_app/pages/ranking_screen.dart';
 import 'package:eurointegrate_app/pages/tela_inicial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
