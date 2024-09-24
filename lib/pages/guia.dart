@@ -115,7 +115,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
         "gerais": perguntasGerais,
       };
     } catch (e) {
-      print("Erro na requisição: $e");
+      //print("Erro na requisição: $e");
       return {
         "departamento": [],
         "gerais": [],
@@ -157,7 +157,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
         throw Exception('Failed to load data');
       }
     } catch (e) {
-      print("Erro na requisição: $e");
+      //print("Erro na requisição: $e");
       return [];
     }
   }
@@ -174,15 +174,15 @@ class _GuiaScreenState extends State<GuiaScreen> {
                 .toList();
             perguntasList.add(perguntasSublista);
           } else {
-            print('O valor de "perguntas" não é uma lista.');
+            //print('O valor de "perguntas" não é uma lista.');
           }
         } else {
-          print('Item não contém a chave "perguntas" ou não é um mapa.');
+          //print('Item não contém a chave "perguntas" ou não é um mapa.');
         }
       }
       return perguntasList;
     } else {
-      print('Dados não disponíveis ou estão vazios.');
+     // print('Dados não disponíveis ou estão vazios.');
       return [];
     }
   }
@@ -219,7 +219,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
 
       return todasPerguntas;
     }).catchError((error) {
-      print('Erro ao carregar dados: $error');
+      //print('Erro ao carregar dados: $error');
       return [];
     });
   }
@@ -339,7 +339,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
             return Center(
                 child: Text('Erro ao carregar dados: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('Nenhuma pergunta disponível.'));
+            return const Center(child: Text('Nenhuma pergunta disponível.'));
           } else {
             List<List<Pergunta>> perguntasList = perguntasAtuais;
             int normasCount = normasAtuais.length;
@@ -366,7 +366,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
                           left: 10,
                           top: MediaQuery.of(context).size.height / 2 - 20,
                           child: IconButton(
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.arrow_back_ios,
                               color: azulEuro,
                               size: 30,
@@ -379,26 +379,26 @@ class _GuiaScreenState extends State<GuiaScreen> {
                             },
                           ),
                         )
-                      : SizedBox(),
+                      : const SizedBox(),
                   isDesktop
                       ? Positioned(
                           right: 10,
                           top: MediaQuery.of(context).size.height / 2 - 20,
                           child: IconButton(
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.arrow_forward_ios,
                               color: azulEuro,
                               size: 30,
                             ),
                             onPressed: () {
                               _pageController.nextPage(
-                                duration: Duration(milliseconds: 300),
+                                duration: const  Duration(milliseconds: 300),
                                 curve: Curves.easeInOut,
                               );
                             },
                           ),
                         )
-                      : SizedBox(),
+                      : const SizedBox(),
                 ]),
               ),
               
@@ -421,7 +421,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
     void _nextPage() {
       if (_currentPage < perguntas.length - 1) {
         _pageController.nextPage(
-          duration: Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
         setState(() {
@@ -433,7 +433,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
     void _previousPage() {
       if (_currentPage > 0) {
         _pageController.previousPage(
-          duration: Duration(milliseconds: 300),
+          duration:const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
         setState(() {
@@ -461,7 +461,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
                           minHeight: 20,
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 8,
                       ),
                       Text(
@@ -476,7 +476,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
                     ],
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 30,
                 ),
                 Padding(
@@ -498,7 +498,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
                                   nome,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontSize: 25, fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -506,7 +506,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
                                   descricao,
-                                  style: TextStyle(fontSize: 18),
+                                  style: const TextStyle(fontSize: 18),
                                 ),
                               ),
                             ],
@@ -537,7 +537,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
                                       padding: const EdgeInsets.all(12.0),
                                       child: Text(
                                         pergunta.enunciado,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontSize: 15, color: Colors.black),
                                         textAlign: TextAlign.center,
                                       ),
@@ -572,12 +572,6 @@ class _GuiaScreenState extends State<GuiaScreen> {
                                                   ),
                                                 ),
                                               ),
-                                              child: Text(
-                                                pergunta.ops[index].texto,
-                                                style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: Colors.white),
-                                              ),
                                               onPressed: pergunta.isAnswered
                                                   ? null
                                                   : () {
@@ -608,6 +602,12 @@ class _GuiaScreenState extends State<GuiaScreen> {
                                                         verificarMudanca();
                                                       });
                                                     },
+                                              child: Text(
+                                                pergunta.ops[index].texto,
+                                                style: const TextStyle(
+                                                    fontSize: 15,
+                                                    color: Colors.white),
+                                              ),
                                             ),
                                           );
                                         },
@@ -621,7 +621,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
                               left: 10,
                               top: 0,
                               child: IconButton(
-                                icon: Icon(
+                                icon: const Icon(
                                   Icons.arrow_back_ios,
                                   color: azulEuro,
                                   size: 20,
@@ -633,7 +633,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
                               right: 10,
                               top: 0,
                               child: IconButton(
-                                icon: Icon(
+                                icon: const Icon(
                                   Icons.arrow_forward_ios,
                                   color: azulEuro,
                                   size: 20,
@@ -664,11 +664,11 @@ class _GuiaScreenState extends State<GuiaScreen> {
                         value: pgr,
                         color: azulEuro,
                         backgroundColor: Colors.grey,
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        borderRadius: const BorderRadius.all(Radius.circular(20)),
                         minHeight: 20,
                       ),
                     ),
-                    SizedBox(
+                   const SizedBox(
                       width: 8,
                     ),
                     Text(
@@ -699,7 +699,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                             nome,
-                            style: TextStyle(
+                            style:const TextStyle(
                                 fontSize: 25, fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -707,7 +707,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                             descricao,
-                            style: TextStyle(fontSize: 18),
+                            style:const TextStyle(fontSize: 18),
                           ),
                         ),
                       ],
@@ -715,7 +715,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 12),
+             const SizedBox(height: 12),
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
@@ -732,7 +732,7 @@ class _GuiaScreenState extends State<GuiaScreen> {
                             child: Text(
                               pergunta.enunciado,
                               style:
-                                  TextStyle(fontSize: 15, color: Colors.black),
+                                 const TextStyle(fontSize: 15, color: Colors.black),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -761,11 +761,6 @@ class _GuiaScreenState extends State<GuiaScreen> {
                                         ),
                                       ),
                                     ),
-                                    child: Text(
-                                      pergunta.ops[index].texto,
-                                      style: TextStyle(
-                                          fontSize: 15, color: Colors.white),
-                                    ),
                                     onPressed: pergunta.isAnswered
                                         ? null
                                         : () {
@@ -790,6 +785,11 @@ class _GuiaScreenState extends State<GuiaScreen> {
                                               verificarMudanca();
                                             });
                                           },
+                                    child: Text(
+                                      pergunta.ops[index].texto,
+                                      style: const TextStyle(
+                                          fontSize: 15, color: Colors.white),
+                                    ),
                                   ),
                                 );
                               },

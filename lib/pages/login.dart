@@ -3,7 +3,6 @@ import 'package:eurointegrate_app/components/consts.dart';
 import 'package:eurointegrate_app/components/main_screen.dart';
 import 'package:eurointegrate_app/components/progress.dart';
 import 'package:eurointegrate_app/pages/admin/main_screen_adm.dart';
-import 'package:eurointegrate_app/pages/home.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -103,7 +102,6 @@ setState(() {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     _cpf.dispose();
     _senha.dispose();
     super.dispose();
